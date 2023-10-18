@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Threading.Tasks;
+using DynamicData.Binding;
 using DynamicData.Kernel;
 using DynamicData.Tests.Domain;
 using FluentAssertions;
@@ -30,6 +33,18 @@ public class FilterOnObservableFixture : IDisposable
     }
 
     [Fact]
+    public void NullChecksAreInPlace()
+    {
+        var checkFilter = () => _source.Connect().FilterOnObservable((Func<Person, IObservable<bool>>)null!);
+        var checkFilterWithKey = () => _source.Connect().FilterOnObservable((Func<Person, string, IObservable<bool>>)null!);
+        var checkSource = () => ObservableCacheEx.FilterOnObservable(null!, (Func<Person, string, IObservable<bool>>)null!);
+
+        checkFilter.Should().Throw<ArgumentNullException>().WithParameterName("filterFactory");
+        checkFilterWithKey.Should().Throw<ArgumentNullException>().WithParameterName("filterFactory");
+        checkSource.Should().Throw<ArgumentNullException>().WithParameterName("source");
+    }
+
+    [Fact]
     public void FactoryIsInvoked()
     {
         // having
@@ -50,7 +65,6 @@ public class FilterOnObservableFixture : IDisposable
         _sourceResults.Data.Count.Should().Be(1);
         invoked.Should().BeTrue();
         val.Should().Be(MagicNumber, "Was value added to cache");
-        Assert.Throws<ArgumentNullException>(() => _source.Connect().FilterOnObservable((Func<Person, IObservable<bool>>)null!));
     }
 
     [Fact]
@@ -74,8 +88,6 @@ public class FilterOnObservableFixture : IDisposable
         _sourceResults.Data.Count.Should().Be(1);
         invoked.Should().BeTrue();
         val.Should().Be(MagicNumber, "Was value added to cache");
-        Assert.Throws<ArgumentNullException>(() => _source.Connect().FilterOnObservable((Func<Person, string, IObservable<bool>>)null!));
-        Assert.Throws<ArgumentNullException>(() => ObservableCacheEx.FilterOnObservable(null!, (Func<Person, string, IObservable<bool>>)null!));
     }
 
     [Fact]
@@ -182,6 +194,69 @@ public class FilterOnObservableFixture : IDisposable
         filterStats.Data.Count.Should().Be(MagicNumber);
         filterStats.Messages.Count.Should().Be(1, "Should have all been added at once");
         filterStats.Summary.Overall.Adds.Should().Be(MagicNumber);
+    }
+
+    [Theory]
+    [InlineData(5, 3, true)]
+    [InlineData(19, 17, true)]
+    [InlineData(131, 197, false)]
+    //[InlineData(5419, 397, true)]
+    //[InlineData(9941, 607, false)]
+    //[InlineData(49999, 997, true)]
+    [Trait("Performance", "Manual run only")]
+    public async Task PerfTestUsingProperty(int cacheSize, int updatePasses, bool runAsync)
+    {
+        const int MinAge = 1;
+        const int MaxAge = 100;
+        const int FilterAge = (MaxAge - MinAge) / 2;
+
+        Predicate<int> AgeCheck = age => age >= FilterAge;
+        Random rand = new Random(0x31415926);
+        var mainCache = new SourceCache<PersonCache, int>(pc => pc.Id);
+
+        using var filteredResults = _source.Connect().FilterOnObservable(person => person.WhenPropertyChanged(p => p.Age).Select(prop => AgeCheck(prop.Value))).AsAggregator();
+
+        _source.AddOrUpdate(Enumerable.Range(0, cacheSize).Select(n => new Person(n.ToString(), MinAge - 1)));
+
+        void SetAge(Person p)
+        {
+            int newAge = rand.Next(MinAge, MaxAge);
+            Debug.WriteLine($"{p.Name} Setting Age: {newAge}");
+            p.Age = newAge;
+        }
+
+        void UpdatePass()
+        {
+            var items = _source.Items.ToList();
+            items.ForEach(p => SetAge(p));
+            //items.ForEach(p => p.Age = rand.Next(MinAge, MaxAge));
+            // items.ForEach(p => p.Age = FilterAge + 1);
+        }
+
+        if (runAsync)
+        {
+            await Task.WhenAll(Enumerable.Range(0, updatePasses).Select(_ => Task.Run(UpdatePass)));
+        }
+        else
+        {
+            Enumerable.Range(0, updatePasses).ForEach(_ => UpdatePass());
+        }
+
+        _sourceResults.Data.Count.Should().Be(cacheSize);
+        filteredResults.Data.Items.Where(p => !AgeCheck(p.Age)).Count().Should().Be(0);
+        filteredResults.Data.Count.Should().Be(_source.Items.Where(p => AgeCheck(p.Age)).Count());
+    }
+
+    private class PersonCache
+    {
+        public PersonCache(int id)
+        {
+            Id = id;
+        }
+
+        public int Id { get; }
+
+        public ISourceCache<Person, string> PeopleCache { get; } = new SourceCache<Person, string>(p => p.Name);
     }
 
     private static Person NewPerson(int n) => new Person("Name" + n, n);

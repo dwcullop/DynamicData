@@ -10,6 +10,10 @@ internal static class FilterEx
 {
     public static void FilterChanges<TObject, TKey>(this ChangeAwareCache<TObject, TKey> cache, IChangeSet<TObject, TKey> changes, Func<TObject, bool> predicate)
         where TObject : notnull
+        where TKey : notnull => FilterChanges(cache, changes, (t, _) => predicate(t));
+
+    public static void FilterChanges<TObject, TKey>(this ChangeAwareCache<TObject, TKey> cache, IChangeSet<TObject, TKey> changes, Func<TObject, TKey, bool> predicate)
+        where TObject : notnull
         where TKey : notnull
     {
         foreach (var change in changes.ToConcreteType())
@@ -20,7 +24,7 @@ internal static class FilterEx
                 case ChangeReason.Add:
                     {
                         var current = change.Current;
-                        if (predicate(current))
+                        if (predicate(current, key))
                         {
                             cache.AddOrUpdate(current, key);
                         }
@@ -31,7 +35,7 @@ internal static class FilterEx
                 case ChangeReason.Update:
                     {
                         var current = change.Current;
-                        if (predicate(current))
+                        if (predicate(current, key))
                         {
                             cache.AddOrUpdate(current, key);
                         }
@@ -50,7 +54,7 @@ internal static class FilterEx
                 case ChangeReason.Refresh:
                     {
                         var existing = cache.Lookup(key);
-                        if (predicate(change.Current))
+                        if (predicate(change.Current, key))
                         {
                             if (!existing.HasValue)
                             {
