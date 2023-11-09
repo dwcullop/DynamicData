@@ -124,19 +124,41 @@ public static class EnumerableEx
 
     internal static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
     {
-        foreach (var item in source)
+        if (source is IList<T> list)
         {
-            action(item);
+            // zero allocation enumerator
+            foreach (var item in EnumerableIList.Create(list))
+            {
+                action(item);
+            }
+        }
+        else
+        {
+            foreach (var item in source)
+            {
+                action(item);
+            }
         }
     }
 
     internal static void ForEach<TObject>(this IEnumerable<TObject> source, Action<TObject, int> action)
     {
         int i = 0;
-        foreach (var item in source)
+
+        if (source is IList<TObject> list)
         {
-            action(item, i);
-            i++;
+            // zero allocation enumerator
+            foreach (var item in EnumerableIList.Create(list))
+            {
+                action(item, i++);
+            }
+        }
+        else
+        {
+            foreach (var item in source)
+            {
+                action(item, i++);
+            }
         }
     }
 
