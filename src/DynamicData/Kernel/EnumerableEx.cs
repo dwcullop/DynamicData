@@ -124,10 +124,24 @@ public static class EnumerableEx
 
     internal static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
     {
-        if (source is IList<T> list)
+        if (source is List<T> fullList)
+        {
+            foreach (var item in fullList)
+            {
+                action(item);
+            }
+        }
+        else if (source is IList<T> list)
         {
             // zero allocation enumerator
             foreach (var item in EnumerableIList.Create(list))
+            {
+                action(item);
+            }
+        }
+        else if (source is T[] array)
+        {
+            foreach (var item in array)
             {
                 action(item);
             }
