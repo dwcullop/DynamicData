@@ -2,6 +2,7 @@
 // Roland Pheasant licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
+using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -17,61 +18,25 @@ internal sealed class GroupOnDynamic<TObject, TKey, TGroupKey>(IObservable<IChan
 {
     public IObservable<IGroupChangeSet<TObject, TKey, TGroupKey>> Run() => Observable.Create<IGroupChangeSet<TObject, TKey, TGroupKey>>(observer =>
     {
-        var dynamicGrouper = new DynamicGrouper<TObject, TKey, TGroupKey>();
-        var notGrouped = new Cache<TObject, TKey>();
+        var dynamicGrouper = new Grouper();
         var locker = new object();
-        var hasSelector = false;
 
         // Create shared observables for the 3 inputs
         var sharedSource = source.Synchronize(locker).Publish();
         var sharedGroupSelector = selectGroupObservable.DistinctUntilChanged().Synchronize(locker).Publish();
         var sharedRegrouper = (regrouper ?? Observable.Empty<Unit>()).Synchronize(locker).Publish();
 
-        // The first value from the Group Selector should update the Grouper with all the values seen so far
-        // Then indicate a selector has been found.  Subsequent values should just update the group selector.
+        // Update the Group Selector
         var subGroupSelector = sharedGroupSelector
-            .SubscribeSafe(
-                onNext: groupSelector =>
-                {
-                    if (hasSelector)
-                    {
-                        dynamicGrouper.SetGroupSelector(groupSelector, observer);
-                    }
-                    else
-                    {
-                        dynamicGrouper.Initialize(notGrouped.KeyValues, groupSelector, observer);
-                        hasSelector = true;
-                    }
-                },
-                onError: observer.OnError);
+            .SubscribeSafe(onNext: groupSelector => dynamicGrouper.SetGroupSelector(groupSelector, observer), onError: observer.OnError);
 
-        // Ignore values until a selector has been provided
-        // Then re-evaluate all the groupings each time it fires
+        // Re-evaluate all the groupings each time it fires
         var subRegrouper = sharedRegrouper
-            .SubscribeSafe(
-                onNext: _ =>
-                {
-                    if (hasSelector)
-                    {
-                        dynamicGrouper.RegroupAll(observer);
-                    }
-                },
-                onError: observer.OnError);
+            .SubscribeSafe(onNext: _ => dynamicGrouper.RegroupAll(observer), onError: observer.OnError);
 
+        // Process the ChangeSet
         var subChanges = sharedSource
-            .SubscribeSafe(
-                onNext: changeSet =>
-                {
-                    if (hasSelector)
-                    {
-                        dynamicGrouper.ProcessChangeSet(changeSet, observer);
-                    }
-                    else
-                    {
-                        notGrouped.Clone(changeSet);
-                    }
-                },
-                onError: observer.OnError);
+            .SubscribeSafe(onNext: changeSet => dynamicGrouper.ProcessChangeSet(changeSet, observer), onError: observer.OnError);
 
         // Create an observable that completes when all 3 inputs complete so the downstream can be completed as well
         var subOnComplete = Observable.Merge(sharedSource.ToUnit(), sharedGroupSelector.ToUnit(), sharedRegrouper)
@@ -87,4 +52,177 @@ internal sealed class GroupOnDynamic<TObject, TKey, TGroupKey>(IObservable<IChan
             subRegrouper,
             subOnComplete);
     });
+
+    private sealed class Grouper(Func<TObject, TKey, TGroupKey>? groupSelector = null) : GrouperBase<TObject, TKey, TGroupKey>, IDisposable
+    {
+        private readonly Cache<TObject, TKey> _pending = new();
+        private Func<TObject, TKey, TGroupKey>? _groupSelector = groupSelector;
+
+        public void ProcessChangeSet(IChangeSet<TObject, TKey> changeSet, IObserver<IGroupChangeSet<TObject, TKey, TGroupKey>> observer)
+        {
+            if (_groupSelector is null)
+            {
+                _pending.Clone(changeSet);
+                return;
+            }
+
+            if (changeSet.Count == 0)
+            {
+                return;
+            }
+
+            var groupedChangeSet = new GroupChangeSet();
+
+            foreach (var change in changeSet.ToConcreteType())
+            {
+                switch (change.Reason)
+                {
+                    case ChangeReason.Add:
+                    case ChangeReason.Update:
+                        {
+                            var groupKey = _groupSelector(change.Current, change.Key);
+                            var oldGroupKey = LookupGroupKey(change.Key);
+
+                            groupedChangeSet.AddOrUpdate(groupKey, change.Key, change.Current);
+                            if (oldGroupKey.HasValue && !KeyCompare(oldGroupKey.Value, groupKey))
+                            {
+                                groupedChangeSet.Remove(oldGroupKey.Value, change.Key);
+                            }
+
+                            SetGroupKey(groupKey, change.Key);
+                        }
+
+                        break;
+
+                    case ChangeReason.Remove:
+                        {
+                            var oldGroupKey = LookupGroupKey(change.Key);
+
+                            if (oldGroupKey.HasValue)
+                            {
+                                groupedChangeSet.Remove(oldGroupKey.Value, change.Key);
+                                RemoveGroupKey(change.Key);
+                            }
+                        }
+
+                        break;
+
+                    case ChangeReason.Refresh:
+                        {
+                            var groupKey = _groupSelector(change.Current, change.Key);
+                            var oldGroupKey = LookupGroupKey(change.Key);
+
+                            if (!oldGroupKey.HasValue)
+                            {
+                                Debug.Fail("Got Refresh for unknown Key");
+                                continue;
+                            }
+
+                            var oldKey = oldGroupKey.Value;
+                            if (KeyCompare(oldKey, groupKey))
+                            {
+                                groupedChangeSet.Refresh(groupKey, change.Key);
+                            }
+                            else
+                            {
+                                groupedChangeSet.AddOrUpdate(groupKey, change.Key, change.Current);
+                                groupedChangeSet.Remove(oldKey, change.Key);
+                                SetGroupKey(groupKey, change.Key);
+                            }
+                        }
+
+                        break;
+                }
+            }
+
+            PerformGroupChanges(groupedChangeSet.GroupChanges);
+
+            EmitChanges(observer);
+        }
+
+        // Re-evaluate the GroupSelector for each item and apply the changes so that each group only emits a single changset
+        // Perform all the adds/removes for each group in a single step
+        public void RegroupAll(IObserver<IGroupChangeSet<TObject, TKey, TGroupKey>> observer)
+        {
+            if (_groupSelector == null)
+            {
+                Debug.Fail("RegroupAll called without a GroupSelector. No changes will be made.");
+                return;
+            }
+
+            // Create an array of tuples with data for items whose GroupKeys have changed
+            var groupChanges = GetGroups().Select(static group => group as ManagedGroup<TObject, TKey, TGroupKey>)
+                .SelectMany(group => group!.Cache.KeyValues.Select(
+                    kvp => (KeyValuePair: kvp, OldGroup: group, NewGroupKey: _groupSelector(kvp.Value, kvp.Key))))
+                .Where(static x => !EqualityComparer<TGroupKey>.Default.Equals(x.OldGroup.Key, x.NewGroupKey))
+                .ToArray();
+
+            // Build a list of the removals that need to happen (grouped by the old key)
+            var pendingRemoves = groupChanges
+                .GroupBy(
+                    static x => x.OldGroup.Key,
+                    static x => (x.KeyValuePair.Key, x.OldGroup))
+                .ToDictionary(g => g.Key, g => g.AsEnumerable());
+
+            // Build a list of the adds that need to happen (grouped by the new key)
+            var pendingAddList = groupChanges
+                .GroupBy(
+                    static x => x.NewGroupKey,
+                    static x => x.KeyValuePair)
+                .ToList();
+
+            // Iterate the list of groups that need something added (also maybe removed)
+            foreach (var add in pendingAddList)
+            {
+                // Get a list of keys to be removed from this group (if any)
+                var removeKeyList =
+                    pendingRemoves.TryGetValue(add.Key, out var removes)
+                        ? removes.Select(static r => r.Key)
+                        : Enumerable.Empty<TKey>();
+
+                // Obtained the ManagedGroup instance and perform all of the pending updates at once
+                var newGroup = GetOrAddGroup(add.Key);
+                newGroup.Update(updater =>
+                {
+                    updater.RemoveKeys(removeKeyList);
+                    updater.AddOrUpdate(add);
+                });
+
+                // Update the key cache
+                UpdateGroupKeys(add);
+
+                // Remove from the pendingRemove dictionary because these removes have been handled
+                pendingRemoves.Remove(add.Key);
+            }
+
+            // Everything left in the Dictionary represents a group that had items removed but no items added
+            foreach (var removeList in pendingRemoves.Values)
+            {
+                var group = removeList.First().OldGroup;
+                group.Update(updater => updater.RemoveKeys(removeList.Select(static kvp => kvp.Key)));
+
+                CheckEmptyGroup(group);
+            }
+
+            EmitChanges(observer);
+        }
+
+        public void SetGroupSelector(Func<TObject, TKey, TGroupKey> groupSelector, IObserver<IGroupChangeSet<TObject, TKey, TGroupKey>> observer)
+        {
+            if (_groupSelector is not null)
+            {
+                _groupSelector = groupSelector;
+                RegroupAll(observer);
+            }
+            else
+            {
+                _groupSelector = groupSelector;
+                var updates = _pending.KeyValues.GroupBy(kvp => _groupSelector(kvp.Value, kvp.Key));
+                PerformAddOrUpdates(updates);
+                _pending.Clear();
+
+                EmitChanges(observer);
+            }
+        }
+    }
 }

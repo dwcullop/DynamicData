@@ -2,6 +2,7 @@
 // Roland Pheasant licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
+using System.Diagnostics;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using DynamicData.Internal;
@@ -15,7 +16,7 @@ internal sealed class GroupOnObservable<TObject, TKey, TGroupKey>(IObservable<IC
 {
     public IObservable<IGroupChangeSet<TObject, TKey, TGroupKey>> Run() => Observable.Create<IGroupChangeSet<TObject, TKey, TGroupKey>>(observer =>
     {
-        var grouper = new DynamicGrouper<TObject, TKey, TGroupKey>();
+        var grouper = new Grouper();
         var locker = new object();
         var parentUpdate = false;
 
@@ -57,4 +58,40 @@ internal sealed class GroupOnObservable<TObject, TKey, TGroupKey>(IObservable<IC
 
         return new CompositeDisposable(shared.Connect(), subMergeMany, subChanges, grouper);
     });
+
+    private sealed class Grouper : GrouperBase<TObject, TKey, TGroupKey>, IDisposable
+    {
+        public void AddOrUpdate(TKey key, TGroupKey groupKey, TObject item, IObserver<IGroupChangeSet<TObject, TKey, TGroupKey>>? observer = null)
+        {
+            PerformAddOrUpdate(key, groupKey, item);
+
+            if (observer != null)
+            {
+                EmitChanges(observer);
+            }
+        }
+
+        public void ProcessChangeSet(IChangeSet<TObject, TKey> changeSet, IObserver<IGroupChangeSet<TObject, TKey, TGroupKey>>? observer = null)
+        {
+            foreach (var change in changeSet.ToConcreteType())
+            {
+                switch (change.Reason)
+                {
+                    case ChangeReason.Remove:
+                    case ChangeReason.Update:
+                        PerformRemove(change.Key);
+                        break;
+
+                    case ChangeReason.Refresh:
+                        PerformRefresh(change.Key);
+                        break;
+                }
+            }
+
+            if (observer != null)
+            {
+                EmitChanges(observer);
+            }
+        }
+    }
 }
