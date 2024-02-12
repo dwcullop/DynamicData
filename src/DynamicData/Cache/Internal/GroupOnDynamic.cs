@@ -70,22 +70,44 @@ internal sealed class GroupOnDynamic<TObject, TKey, TGroupKey>(IObservable<IChan
                 return;
             }
 
-            var groupedChangeSet = new GroupChangeSet();
+            var groupedChangeSet = new GroupChanges();
 
             foreach (var change in changeSet.ToConcreteType())
             {
                 switch (change.Reason)
                 {
                     case ChangeReason.Add:
+                        {
+                            var groupKey = _groupSelector(change.Current, change.Key);
+
+                            groupedChangeSet.AddChange(groupKey, change);
+                            SetGroupKey(groupKey, change.Key);
+                        }
+
+                        break;
+
                     case ChangeReason.Update:
                         {
                             var groupKey = _groupSelector(change.Current, change.Key);
                             var oldGroupKey = LookupGroupKey(change.Key);
 
-                            groupedChangeSet.AddOrUpdate(groupKey, change.Key, change.Current);
-                            if (oldGroupKey.HasValue && !KeyCompare(oldGroupKey.Value, groupKey))
+                            if (oldGroupKey.HasValue)
                             {
-                                groupedChangeSet.Remove(oldGroupKey.Value, change.Key);
+                                // Key didn't change, so just forward the update change
+                                if (KeyCompare(oldGroupKey.Value, groupKey))
+                                {
+                                    groupedChangeSet.AddChange(groupKey, change);
+                                    continue;
+                                }
+
+                                // GroupKey changes, so convert to Add/Remove events instead of Update
+                                groupedChangeSet.CreateAddChange(groupKey, change.Key, change.Current);
+                                groupedChangeSet.CreateRemoveChange(oldGroupKey.Value, change.Key, change.Previous.Value);
+                            }
+                            else
+                            {
+                                Debug.Fail("Got Update for Key with Unknown Group Key");
+                                groupedChangeSet.CreateAddChange(groupKey, change.Key, change.Current);
                             }
 
                             SetGroupKey(groupKey, change.Key);
@@ -99,8 +121,14 @@ internal sealed class GroupOnDynamic<TObject, TKey, TGroupKey>(IObservable<IChan
 
                             if (oldGroupKey.HasValue)
                             {
-                                groupedChangeSet.Remove(oldGroupKey.Value, change.Key);
+                                // Forward the change
+                                groupedChangeSet.AddChange(oldGroupKey.Value, change);
                                 RemoveGroupKey(change.Key);
+                            }
+                            else
+                            {
+                                Debug.Fail("Got Remove for Key with unknown Group Key");
+                                continue;
                             }
                         }
 
@@ -108,33 +136,34 @@ internal sealed class GroupOnDynamic<TObject, TKey, TGroupKey>(IObservable<IChan
 
                     case ChangeReason.Refresh:
                         {
-                            var groupKey = _groupSelector(change.Current, change.Key);
                             var oldGroupKey = LookupGroupKey(change.Key);
 
                             if (!oldGroupKey.HasValue)
                             {
-                                Debug.Fail("Got Refresh for unknown Key");
+                                Debug.Fail("Got Refresh for Key with unknown Group Key");
                                 continue;
                             }
 
+                            var groupKey = _groupSelector(change.Current, change.Key);
                             var oldKey = oldGroupKey.Value;
                             if (KeyCompare(oldKey, groupKey))
                             {
-                                groupedChangeSet.Refresh(groupKey, change.Key);
+                                // Forward the Refresh change
+                                groupedChangeSet.AddChange(oldKey, change);
+                                continue;
                             }
-                            else
-                            {
-                                groupedChangeSet.AddOrUpdate(groupKey, change.Key, change.Current);
-                                groupedChangeSet.Remove(oldKey, change.Key);
-                                SetGroupKey(groupKey, change.Key);
-                            }
+
+                            // GroupKey changed so convert to add/remove events
+                            groupedChangeSet.CreateAddChange(groupKey, change.Key, change.Current);
+                            groupedChangeSet.CreateRemoveChange(oldKey, change.Key, change.Current);
+                            SetGroupKey(groupKey, change.Key);
                         }
 
                         break;
                 }
             }
 
-            PerformGroupChanges(groupedChangeSet.GroupChanges);
+            PerformGroupChanges(groupedChangeSet);
 
             EmitChanges(observer);
         }
@@ -216,10 +245,15 @@ internal sealed class GroupOnDynamic<TObject, TKey, TGroupKey>(IObservable<IChan
             else
             {
                 _groupSelector = groupSelector;
-                var updates = _pending.KeyValues.GroupBy(kvp => _groupSelector(kvp.Value, kvp.Key));
-                PerformAddOrUpdates(updates);
-                _pending.Clear();
+                var groupChanges = new GroupChanges();
+                foreach (var group in _pending.KeyValues.GroupBy(kvp => _groupSelector(kvp.Value, kvp.Key)))
+                {
+                    groupChanges.CreateAddChanges(group.Key, group);
+                    UpdateGroupKeys(group);
+                }
 
+                _pending.Clear();
+                PerformGroupChanges(groupChanges);
                 EmitChanges(observer);
             }
         }

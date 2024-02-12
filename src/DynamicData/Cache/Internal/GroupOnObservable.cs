@@ -17,20 +17,19 @@ internal sealed class GroupOnObservable<TObject, TKey, TGroupKey>(IObservable<IC
     public IObservable<IGroupChangeSet<TObject, TKey, TGroupKey>> Run() => Observable.Create<IGroupChangeSet<TObject, TKey, TGroupKey>>(observer =>
     {
         var grouper = new Grouper();
-        var locker = new object();
         var parentUpdate = false;
 
         IObservable<TGroupKey> CreateGroupObservable(TObject item, TKey key) =>
             selectGroup(item, key)
                 .DistinctUntilChanged()
-                .Synchronize(locker!)
+                .Synchronize(grouper!)
                 .Do(
                     onNext: groupKey => grouper!.AddOrUpdate(key, groupKey, item, !parentUpdate ? observer : null),
                     onError: observer.OnError);
 
         // Create a shared connection to the source
         var shared = source
-            .Synchronize(locker)
+            .Synchronize(grouper)
             .Do(_ => parentUpdate = true)
             .Publish();
 
@@ -63,7 +62,7 @@ internal sealed class GroupOnObservable<TObject, TKey, TGroupKey>(IObservable<IC
     {
         public void AddOrUpdate(TKey key, TGroupKey groupKey, TObject item, IObserver<IGroupChangeSet<TObject, TKey, TGroupKey>>? observer = null)
         {
-            PerformAddOrUpdate(key, groupKey, item);
+            CreateAddOrUpdateChanges(key, groupKey, item);
 
             if (observer != null)
             {
@@ -78,12 +77,15 @@ internal sealed class GroupOnObservable<TObject, TKey, TGroupKey>(IObservable<IC
                 switch (change.Reason)
                 {
                     case ChangeReason.Remove:
+                        CreateRemoveChange(change.Key, change.Current);
+                        break;
+
                     case ChangeReason.Update:
-                        PerformRemove(change.Key);
+                        CreateRemoveChange(change.Key, change.Previous.Value);
                         break;
 
                     case ChangeReason.Refresh:
-                        PerformRefresh(change.Key);
+                        CreateRefreshChange(change.Key, change.Current);
                         break;
                 }
             }

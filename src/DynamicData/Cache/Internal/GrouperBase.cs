@@ -2,7 +2,6 @@
 // Roland Pheasant licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
-using System.Collections;
 using System.Diagnostics;
 using DynamicData.Kernel;
 
@@ -17,10 +16,15 @@ internal class GrouperBase<TObject, TKey, TGroupKey>
     private readonly ChangeAwareCache<IGroup<TObject, TKey, TGroupKey>, TGroupKey> _groupCache = new();
     private readonly Dictionary<TKey, TGroupKey> _groupKeys = [];
 
+    protected GroupChanges PendingChanges { get; } = new();
+
     public void Dispose() => _groupCache.Items.ForEach(group => (group as ManagedGroup<TObject, TKey, TGroupKey>)?.Dispose());
 
     public void EmitChanges(IObserver<IGroupChangeSet<TObject, TKey, TGroupKey>> observer)
     {
+        PerformGroupChanges(PendingChanges);
+        PendingChanges.Clear();
+
         // Verify logic doesn't capture any non-empty groups
         Debug.Assert(_emptyGroups.All(static group => group.Cache.Count == 0), "Non empty Group in Empty Group HashSet");
 
@@ -49,18 +53,6 @@ internal class GrouperBase<TObject, TKey, TGroupKey>
 
     protected static bool KeyCompare(TGroupKey a, TGroupKey b) => EqualityComparer<TGroupKey>.Default.Equals(a, b);
 
-    protected static void PerformGroupRefresh(TKey key, in Optional<ManagedGroup<TObject, TKey, TGroupKey>> optionalGroup)
-    {
-        if (optionalGroup.HasValue)
-        {
-            optionalGroup.Value.Update(updater => updater.Refresh(key));
-        }
-        else
-        {
-            Debug.Fail("Should not receive a refresh for an unknown Group Key");
-        }
-    }
-
     protected IEnumerable<IGroup<TObject, TKey, TGroupKey>> GetGroups() => _groupCache.Items;
 
     protected void CheckEmptyGroup(ManagedGroup<TObject, TKey, TGroupKey> group)
@@ -72,11 +64,11 @@ internal class GrouperBase<TObject, TKey, TGroupKey>
         }
     }
 
-    protected void UpdateGroupKeys(IGrouping<TGroupKey, KeyValuePair<TKey, TObject>> add)
+    protected void UpdateGroupKeys(IGrouping<TGroupKey, KeyValuePair<TKey, TObject>> grouping)
     {
-        foreach (var kvp in add)
+        foreach (var kvp in grouping)
         {
-            _groupKeys[kvp.Key] = add.Key;
+            _groupKeys[kvp.Key] = grouping.Key;
         }
     }
 
@@ -100,192 +92,86 @@ internal class GrouperBase<TObject, TKey, TGroupKey>
 
     protected void RemoveGroupKey(TKey key) => _groupKeys.Remove(key);
 
-    protected void PerformAddOrUpdate(TKey key, TGroupKey groupKey, TObject item)
+    protected void CreateAddOrUpdateChanges(TKey key, TGroupKey groupKey, TObject item)
     {
         // See if this item already has been grouped
         if (_groupKeys.TryGetValue(key, out var currentGroupKey))
         {
             // See if the key has changed
-            if (EqualityComparer<TGroupKey>.Default.Equals(groupKey, currentGroupKey))
+            if (!KeyCompare(groupKey, currentGroupKey))
             {
-                // GroupKey did not change, so just update the value in the group
-                var optionalGroup = LookupGroup(currentGroupKey);
-                if (optionalGroup.HasValue)
-                {
-                    optionalGroup.Value.Update(updater => updater.AddOrUpdate(item, key));
-                    return;
-                }
-
-                Debug.Fail("If there is a GroupKey associated with a Key, the Group for that GroupKey should exist.");
-            }
-            else
-            {
-                // GroupKey changed, so remove from old and allow to be added below
-                PerformRemove(key, currentGroupKey);
-            }
-        }
-
-        // Find the right group and add the item
-        PerformGroupAddOrUpdate(key, groupKey, item);
-    }
-
-    protected void PerformAddOrUpdates(IEnumerable<IGrouping<TGroupKey, KeyValuePair<TKey, TObject>>> updates)
-    {
-        foreach (var update in updates)
-        {
-            GetOrAddGroup(update.Key).Update(updater => updater.AddOrUpdate(update));
-            UpdateGroupKeys(update);
-        }
-    }
-
-    protected void PerformGroupAddOrUpdate(TKey key, TGroupKey groupKey, TObject item)
-    {
-        var group = GetOrAddGroup(groupKey);
-        group.Update(updater => updater.AddOrUpdate(item, key));
-        _groupKeys[key] = groupKey;
-
-        // Can't be empty since a value was just added
-        _emptyGroups.Remove(group);
-    }
-
-    protected void PerformRefresh(TKey key) => PerformGroupRefresh(key, LookupGroup(key));
-
-    // When the GroupKey is available, check then and move the group if it changed
-    protected void PerformRefresh(TKey key, TGroupKey newGroupKey, TObject item)
-    {
-        if (_groupKeys.TryGetValue(key, out var groupKey))
-        {
-            // See if the key has changed
-            if (EqualityComparer<TGroupKey>.Default.Equals(newGroupKey, groupKey))
-            {
-                // GroupKey did not change, so just refresh the value in the group
-                PerformGroupRefresh(key, LookupGroup(groupKey));
-            }
-            else
-            {
-                // GroupKey changed, so remove from old and add to new
-                PerformRemove(key, groupKey);
-                PerformGroupAddOrUpdate(key, newGroupKey, item);
+                PendingChanges.CreateAddChange(groupKey, key, item);
+                PendingChanges.CreateRemoveChange(currentGroupKey, key, item);
+                _groupKeys[key] = groupKey;
             }
         }
         else
         {
-            Debug.Fail("Should not receive a refresh for an unknown key");
+            PendingChanges.CreateAddChange(groupKey, key, item);
+            _groupKeys[key] = groupKey;
         }
     }
 
-    protected void PerformRemove(TKey key)
+    protected void CreateRemoveChange(TKey key, TObject item)
     {
         if (_groupKeys.TryGetValue(key, out var groupKey))
         {
-            PerformRemove(key, groupKey);
+            PendingChanges.CreateRemoveChange(groupKey, key, item);
             _groupKeys.Remove(key);
         }
-        else
+    }
+
+    protected void CreateRefreshChange(TKey key, TObject item)
+    {
+        if (_groupKeys.TryGetValue(key, out var groupKey))
         {
-            Debug.Fail("Should not receive a Remove Event for an unknown key");
+            PendingChanges.CreateRefreshChange(groupKey, key, item);
         }
     }
 
-    protected void PerformRemove(TKey key, TGroupKey groupKey)
+    protected void PerformGroupChanges(GroupChanges groupChanges)
     {
-        var optionalGroup = LookupGroup(groupKey);
-        if (optionalGroup.HasValue)
+        foreach (var groupChange in groupChanges.Changes)
         {
-            var currentGroup = optionalGroup.Value;
-            currentGroup.Update(updater =>
+            var group = GetOrAddGroup(groupChange.Key);
+            group.Update(updater =>
             {
-                updater.Remove(key);
-                if (updater.Count == 0)
-                {
-                    _emptyGroups.Add(currentGroup);
-                }
+                updater.Clone(new ChangeSet<TObject, TKey>(groupChange.Value));
+                _ = (updater.Count != 0) ? _emptyGroups.Remove(group) : _emptyGroups.Add(group);
             });
         }
-        else
-        {
-            Debug.Fail("Should not receive a Remove Event for an unknown Group Key");
-        }
     }
 
-    protected void PerformGroupChanges(IEnumerable<GroupChanges> groupChanges)
+    protected class GroupChanges
     {
-        foreach (var groupChange in groupChanges)
-        {
-            if (groupChange.AddsOrUpdates.Count > 0)
-            {
-                var group = GetOrAddGroup(groupChange.GroupKey);
-                group.Update(updater =>
-                {
-                    updater.AddOrUpdate(groupChange.AddsOrUpdates);
-                    updater.RemoveKeys(groupChange.Removes);
-                    updater.Refresh(groupChange.Refreshes);
-                });
-            }
-            else if (groupChange.Removes.Count > 0 || groupChange.Removes.Count > 0)
-            {
-                var optionalGroup = LookupGroup(groupChange.GroupKey);
-                if (optionalGroup.HasValue)
-                {
-                    var group = optionalGroup.Value;
-                    group.Update(updater =>
-                    {
-                        updater.RemoveKeys(groupChange.Removes);
-                        updater.Refresh(groupChange.Refreshes);
-                        if (updater.Count == 0)
-                        {
-                            _emptyGroups.Add(group);
-                        }
-                    });
-                }
-                else
-                {
-                    Debug.Fail("Should not receive Events for an unknown Group Key");
-                }
-            }
-        }
-    }
+        private readonly Dictionary<TGroupKey, List<Change<TObject, TKey>>> _groupChanges = [];
 
-    protected class GroupChangeSet
-    {
-        private readonly Dictionary<TGroupKey, GroupChanges> _groupChanges = [];
+        public IEnumerable<KeyValuePair<TGroupKey, List<Change<TObject, TKey>>>> Changes => _groupChanges;
 
-        public IEnumerable<GroupChanges> GroupChanges => _groupChanges.Values;
+        public void AddChange(TGroupKey groupKey, in Change<TObject, TKey> change) => GetGroupChanges(groupKey).Add(change);
 
-        public IEnumerable<TGroupKey> GroupKeys => _groupChanges.Keys;
+        public void AddChanges(TGroupKey groupKey, IEnumerable<Change<TObject, TKey>> changes) => GetGroupChanges(groupKey).Add(changes);
 
-        public void AddOrUpdate(TGroupKey groupKey, TKey key, TObject item) => AddOrUpdate(groupKey, new KeyValuePair<TKey, TObject>(key, item));
+        public void Clear() => _groupChanges.Clear();
 
-        public void AddOrUpdate(TGroupKey groupKey, KeyValuePair<TKey, TObject> kvp) => GetGroupChanges(groupKey).AddsOrUpdates.Add(kvp);
+        public void CreateAddChange(TGroupKey groupKey, TKey key, TObject item) => AddChange(groupKey, new Change<TObject, TKey>(ChangeReason.Add, key, item));
 
-        public void Remove(TGroupKey groupKey, TKey key) => GetGroupChanges(groupKey).Removes.Add(key);
+        public void CreateAddChanges(TGroupKey groupKey, IEnumerable<KeyValuePair<TKey, TObject>> kvps) => AddChanges(groupKey, kvps.Select(kvp => new Change<TObject, TKey>(ChangeReason.Add, kvp.Key, kvp.Value)));
 
-        public void Refresh(TGroupKey groupKey, TKey key) => GetGroupChanges(groupKey).Refreshes.Add(key);
+        public void CreateUpdateChange(TGroupKey groupKey, TKey key, TObject item, TObject prev) => AddChange(groupKey, new Change<TObject, TKey>(ChangeReason.Update, key, item, Optional.Some(prev)));
 
-        private GrouperBase<TObject, TKey, TGroupKey>.GroupChanges GetGroupChanges(TGroupKey groupKey)
+        public void CreateRemoveChange(TGroupKey groupKey, TKey key, TObject item) => AddChange(groupKey, new Change<TObject, TKey>(ChangeReason.Remove, key, item));
+
+        public void CreateRefreshChange(TGroupKey groupKey, TKey key, TObject item) => AddChange(groupKey, new Change<TObject, TKey>(ChangeReason.Refresh, key, item));
+
+        private List<Change<TObject, TKey>> GetGroupChanges(TGroupKey groupKey)
         {
             if (!_groupChanges.TryGetValue(groupKey, out var changes))
             {
-                _groupChanges[groupKey] = changes = new GroupChanges(groupKey);
+                _groupChanges[groupKey] = changes = [];
             }
 
             return changes;
         }
-    }
-
-    protected class GroupChanges(TGroupKey groupKey, IEnumerable<KeyValuePair<TKey, TObject>>? adds = null, IEnumerable<TKey>? removes = null, IEnumerable<TKey>? refreshes = null)
-    {
-        public GroupChanges(IGrouping<TGroupKey, KeyValuePair<TKey, TObject>> updates)
-            : this(updates.Key, updates, null)
-        {
-        }
-
-        public TGroupKey GroupKey { get; } = groupKey;
-
-        public List<KeyValuePair<TKey, TObject>> AddsOrUpdates { get; } = adds?.ToList() ?? [];
-
-        public List<TKey> Removes { get; } = removes?.ToList() ?? [];
-
-        public List<TKey> Refreshes { get; } = refreshes?.ToList() ?? [];
     }
 }
