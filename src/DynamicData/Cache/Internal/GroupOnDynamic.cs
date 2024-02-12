@@ -19,12 +19,11 @@ internal sealed class GroupOnDynamic<TObject, TKey, TGroupKey>(IObservable<IChan
     public IObservable<IGroupChangeSet<TObject, TKey, TGroupKey>> Run() => Observable.Create<IGroupChangeSet<TObject, TKey, TGroupKey>>(observer =>
     {
         var dynamicGrouper = new Grouper();
-        var locker = new object();
 
         // Create shared observables for the 3 inputs
-        var sharedSource = source.Synchronize(locker).Publish();
-        var sharedGroupSelector = selectGroupObservable.DistinctUntilChanged().Synchronize(locker).Publish();
-        var sharedRegrouper = (regrouper ?? Observable.Empty<Unit>()).Synchronize(locker).Publish();
+        var sharedSource = source.Synchronize(dynamicGrouper).Publish();
+        var sharedGroupSelector = selectGroupObservable.DistinctUntilChanged().Synchronize(dynamicGrouper).Publish();
+        var sharedRegrouper = (regrouper ?? Observable.Empty<Unit>()).Synchronize(dynamicGrouper).Publish();
 
         // Update the Group Selector
         var subGroupSelector = sharedGroupSelector
