@@ -25,7 +25,7 @@ internal sealed class GroupOnObservable<TObject, TKey, TGroupKey>(IObservable<IC
             : base(observer)
         {
             _selectGroup = selectGroup;
-            CreateParentSubscription(source);
+            SetParentSubscription(source);
         }
 
         protected override void ParentOnNext(IChangeSet<TObject, TKey> changes)
@@ -64,6 +64,6 @@ internal sealed class GroupOnObservable<TObject, TKey, TGroupKey>(IObservable<IC
         }
 
         private void AddGroupSubscription(TObject obj, TKey key) =>
-            AddChildSubscription(MakeChildObservable(_selectGroup(obj, key).DistinctUntilChanged().Select(groupKey => (groupKey, obj))), key);
+            AddChildSubscription(AddSynchronization(_selectGroup(obj, key).DistinctUntilChanged().Select(groupKey => (groupKey, obj))), key);
     }
 }

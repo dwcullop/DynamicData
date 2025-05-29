@@ -36,11 +36,11 @@ internal sealed class MergeManyCacheChangeSets<TObject, TKey, TDestination, TDes
             _changeSetMergeTracker = new(() => _cache.Items, comparer, equalityComparer);
 
             // Child Observable has to go into the ChangeSetCache so the locking protects it
-            CreateParentSubscription(source.Transform((obj, key) =>
-                new ChangeSetCache<TDestination, TDestinationKey>(MakeChildObservable(changeSetSelector(obj, key).IgnoreSameReferenceUpdate()))));
+            SetParentSubscription(source.Transform((obj, key) =>
+                new ChangeSetCache<TDestination, TDestinationKey>(AddSynchronization(changeSetSelector(obj, key).IgnoreSameReferenceUpdate()))));
         }
 
-    protected override void ParentOnNext(IChangeSet<ChangeSetCache<TDestination, TDestinationKey>, TKey> changes)
+        protected override void ParentOnNext(IChangeSet<ChangeSetCache<TDestination, TDestinationKey>, TKey> changes)
         {
             // Process all the changes at once to preserve the changeset order
             foreach (var change in changes.ToConcreteType())

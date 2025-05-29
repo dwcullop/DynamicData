@@ -40,20 +40,20 @@ internal sealed class TransformManyAsync<TSource, TKey, TDestination, TDestinati
             }
 
             ChangeSetCache<TDestination, TDestinationKey> Transformer(TSource obj, TKey key) =>
-                new(MakeChildObservable(Observable.Defer(() => transform(obj, key))));
+                new(AddSynchronization(Observable.Defer(() => transform(obj, key))));
 
             ChangeSetCache<TDestination, TDestinationKey> SafeTransformer(TSource obj, TKey key) =>
-                new(MakeChildObservable(Observable.Defer(() => ErrorHandlingTransform(obj, key))));
+                new(AddSynchronization(Observable.Defer(() => ErrorHandlingTransform(obj, key))));
 
             _changeSetMergeTracker = new(() => _cache.Items, comparer, equalityComparer);
 
             if (errorHandler is null)
             {
-                CreateParentSubscription(source.Transform(Transformer));
+                SetParentSubscription(source.Transform(Transformer));
             }
             else
             {
-                CreateParentSubscription(source.Transform(SafeTransformer));
+                SetParentSubscription(source.Transform(SafeTransformer));
             }
         }
 

@@ -48,8 +48,8 @@ internal sealed class MergeManyCacheChangeSetsSourceCompare<TObject, TKey, TDest
             _reevalOnRefresh = reevalOnRefresh;
 
             // Child Observable has to go into the ChangeSetCache so the locking protects it
-            CreateParentSubscription(source.Transform((obj, key) =>
-                new ChangeSetCache<ParentChildEntry, TDestinationKey>(MakeChildObservable(changeSetSelector(obj, key).IgnoreSameReferenceUpdate()))));
+            SetParentSubscription(source.Transform((obj, key) =>
+                new ChangeSetCache<ParentChildEntry, TDestinationKey>(AddSynchronization(changeSetSelector(obj, key).IgnoreSameReferenceUpdate()))));
         }
 
         protected override void ParentOnNext(IChangeSet<ChangeSetCache<ParentChildEntry, TDestinationKey>, TKey> changes)

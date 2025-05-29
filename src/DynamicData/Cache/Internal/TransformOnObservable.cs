@@ -27,7 +27,7 @@ internal sealed class TransformOnObservable<TSource, TKey, TDestination>(IObserv
         {
             _transform = transform;
             _transformOnRefresh = transformOnRefresh;
-            CreateParentSubscription(source);
+            SetParentSubscription(source);
         }
 
         protected override void ParentOnNext(IChangeSet<TSource, TKey> changes)
@@ -77,6 +77,6 @@ internal sealed class TransformOnObservable<TSource, TKey, TDestination>(IObserv
         }
 
         private void AddTransformSubscription(TSource obj, TKey key) =>
-            AddChildSubscription(MakeChildObservable(_transform(obj, key).DistinctUntilChanged()), key);
+            AddChildSubscription(AddSynchronization(_transform(obj, key).DistinctUntilChanged()), key);
     }
 }

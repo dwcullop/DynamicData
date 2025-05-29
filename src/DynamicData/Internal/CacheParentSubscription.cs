@@ -47,9 +47,11 @@ internal abstract class CacheParentSubscription<TParent, TKey, TChild, TObserver
 
     protected abstract void EmitChanges(IObserver<TObserver> observer);
 
+    // Called to add a new Child Subscription, usually from ParentOnNext
+    // Each child observable must have been through a AddSynchronization call already
     protected void AddChildSubscription(IObservable<TChild> observable, TKey parentKey)
     {
-        // Add a new subscription.  Do first so cleanup of existing subs doesn't trigger OnCompleted.
+        // First, add a new subscription so cleanup of existing subs won't trigger OnCompleted.
         Interlocked.Increment(ref _subscriptionCounter);
 
         // Create a container for the Disposable and add to the KeyedDisposable
@@ -70,13 +72,13 @@ internal abstract class CacheParentSubscription<TParent, TKey, TChild, TObserver
                 () => RemoveChildSubscription(parentKey));
     }
 
+    // Called to Dispose a Child Subscription, usually from ParentOnNext
     protected void RemoveChildSubscription(TKey parentKey) => _childSubscriptions.Remove(parentKey);
 
-    protected void CreateParentSubscription(IObservable<IChangeSet<TParent, TKey>> source) =>
+    // This must be called exactly once, usually in the derived class constructor
+    protected void SetParentSubscription(IObservable<IChangeSet<TParent, TKey>> source) =>
         _parentSubscription.Disposable =
-            source
-                .Synchronize(_synchronize)
-                .Do(_ => EnterUpdate())
+            AddSynchronization(source)
                 .SubscribeSafe(
                     changes =>
                     {
@@ -104,11 +106,11 @@ internal abstract class CacheParentSubscription<TParent, TKey, TChild, TObserver
 
     // This must be called by the derived class on anything passed to AddChildSubscription
     // Manual step so that the derived class has full control on where it is called
-    protected IObservable<T> MakeChildObservable<T>(IObservable<T> observable) =>
+    protected IObservable<T> AddSynchronization<T>(IObservable<T> observable) =>
         observable
             .Synchronize(_synchronize)
             .Do(_ => EnterUpdate())
-        ;
+            ;
 
     private void EnterUpdate() => Interlocked.Increment(ref _updateCounter);
 
