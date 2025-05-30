@@ -10,30 +10,33 @@ namespace DynamicData.Cache.Internal;
 /// <summary>
 /// Operator that is similiar to MergeMany but intelligently handles Cache ChangeSets.
 /// </summary>
-internal sealed class MergeManyCacheChangeSets<TObject, TKey, TDestination, TDestinationKey>(IObservable<IChangeSet<TObject, TKey>> source, Func<TObject, TKey, IObservable<IChangeSet<TDestination, TDestinationKey>>> changeSetSelector, IEqualityComparer<TDestination>? equalityComparer, IComparer<TDestination>? comparer)
+internal sealed class MergeManyCacheChangeSets<TObject, TKey, TDestination, TDestinationKey>(IObservable<IChangeSet<TObject, TKey>> source, Func<TObject, TKey, IObservable<IChangeSet<TDestination, TDestinationKey>>> changeSetSelector, IEqualityComparer<TDestination>? equalityComparer, IComparer<TDestination>? comparer, bool reevalOnRefresh = false)
     where TObject : notnull
     where TKey : notnull
     where TDestination : notnull
     where TDestinationKey : notnull
 {
     public IObservable<IChangeSet<TDestination, TDestinationKey>> Run() => Observable.Create<IChangeSet<TDestination, TDestinationKey>>(
-        observer => new Subscription(source, changeSetSelector, observer, equalityComparer, comparer));
+        observer => new Subscription(source, changeSetSelector, observer, equalityComparer, comparer, reevalOnRefresh));
 
     // Maintains state for a single subscription
     private sealed class Subscription : CacheParentSubscription<ChangeSetCache<TDestination, TDestinationKey>, TKey, IChangeSet<TDestination, TDestinationKey>, IChangeSet<TDestination, TDestinationKey>>
     {
         private readonly Cache<ChangeSetCache<TDestination, TDestinationKey>, TKey> _cache = new();
         private readonly ChangeSetMergeTracker<TDestination, TDestinationKey> _changeSetMergeTracker;
+        private readonly bool _reevalOnRefresh;
 
         public Subscription(
             IObservable<IChangeSet<TObject, TKey>> source,
             Func<TObject, TKey, IObservable<IChangeSet<TDestination, TDestinationKey>>> changeSetSelector,
             IObserver<IChangeSet<TDestination, TDestinationKey>> observer,
             IEqualityComparer<TDestination>? equalityComparer,
-            IComparer<TDestination>? comparer)
+            IComparer<TDestination>? comparer,
+            bool reevalOnRefresh)
             : base(observer)
         {
             _changeSetMergeTracker = new(() => _cache.Items, comparer, equalityComparer);
+            _reevalOnRefresh = reevalOnRefresh;
 
             // Child Observable has to go into the ChangeSetCache so the locking protects it
             SetParentSubscription(source.Transform((obj, key) =>
@@ -64,12 +67,16 @@ internal sealed class MergeManyCacheChangeSets<TObject, TKey, TDestination, TDes
                         RemoveChildSubscription(change.Key);
                         _changeSetMergeTracker.RemoveItems(change.Current.Cache.KeyValues);
                         break;
+
+                    case ChangeReason.Refresh when _reevalOnRefresh:
+                        _changeSetMergeTracker.RefreshItems(change.Current.Cache.Keys);
+                        break;
                 }
             }
         }
 
-        protected override void ChildOnNext(IChangeSet<TDestination, TDestinationKey> changes, TKey parentKey) =>
-            _changeSetMergeTracker.ProcessChangeSet(changes, null);
+        protected override void ChildOnNext(IChangeSet<TDestination, TDestinationKey> child, TKey parentKey) =>
+            _changeSetMergeTracker.ProcessChangeSet(child, null);
 
         protected override void EmitChanges(IObserver<IChangeSet<TDestination, TDestinationKey>> observer) =>
             _changeSetMergeTracker.EmitChanges(observer);
