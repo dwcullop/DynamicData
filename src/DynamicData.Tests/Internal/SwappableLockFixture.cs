@@ -105,6 +105,61 @@ public sealed class SwappableLockFixture
         second.IsHeldByCurrentThread.Should().BeFalse();
     }
 
+    [Fact]
+    public void SwapTo_SameLock_IsNoOp()
+    {
+        // Regression for SWL-C2: System.Threading.Lock is not reentrant on .NET 9. Without
+        // a same-gate fast-path, SwapTo(currentGate) would throw LockRecursionException.
+        // This test verifies both (a) no exception is thrown and (b) the lock state is
+        // unchanged after the call.
+        var gate = new Lock();
+
+        using var swappable = SwappableLock.CreateAndEnter(gate);
+        swappable.SwapTo(gate);
+
+        gate.IsHeldByCurrentThread.Should().BeTrue();
+    }
+
+    [Fact]
+    public void CreateAndEnter_NullGate_Throws()
+    {
+        // ref struct cannot be used as a generic type argument, so FluentAssertions'
+        // Action-based throw matchers are not available here.
+        var threw = false;
+        try
+        {
+            _ = SwappableLock.CreateAndEnter((Lock)null!);
+        }
+        catch (ArgumentNullException)
+        {
+            threw = true;
+        }
+
+        threw.Should().BeTrue("CreateAndEnter(null) must throw ArgumentNullException");
+    }
+
+    [Fact]
+    public void SwapTo_NullGate_Throws()
+    {
+        var gate = new Lock();
+        using var swappable = SwappableLock.CreateAndEnter(gate);
+
+        // ref struct cannot be captured by a lambda, so the assertion is expressed
+        // directly without FluentAssertions' Action-based throw matchers.
+        var threw = false;
+        try
+        {
+            swappable.SwapTo(null!);
+        }
+        catch (ArgumentNullException)
+        {
+            threw = true;
+        }
+
+        threw.Should().BeTrue("SwapTo(null) must throw ArgumentNullException");
+        gate.IsHeldByCurrentThread.Should().BeTrue("the original lock must remain held when SwapTo rejects a bad argument");
+    }
+
 #else
 
     [Fact]
@@ -208,6 +263,65 @@ public sealed class SwappableLockFixture
         swappable.SwapTo(gate);
 
         Monitor.IsEntered(gate).Should().BeTrue();
+    }
+
+    [Fact]
+    public void SwapTo_SameLock_IsNoOp()
+    {
+        // Regression for SWL-C2: the same-gate fast-path avoids an unnecessary recursive
+        // acquisition on Monitor, matching the NET9 branch where it is the only way to
+        // avoid LockRecursionException.
+        var gate = new object();
+
+        using var swappable = SwappableLock.CreateAndEnter(gate);
+        swappable.SwapTo(gate);
+
+        Monitor.IsEntered(gate).Should().BeTrue();
+
+        // After Dispose the lock should be fully released; if SwapTo had taken a recursive
+        // acquisition, the second Exit on the same gate would still leave it held.
+        swappable.Dispose();
+        Monitor.IsEntered(gate).Should().BeFalse();
+    }
+
+    [Fact]
+    public void CreateAndEnter_NullGate_Throws()
+    {
+        // ref struct cannot be used as a generic type argument, so FluentAssertions'
+        // Action-based throw matchers are not available here.
+        var threw = false;
+        try
+        {
+            _ = SwappableLock.CreateAndEnter((object)null!);
+        }
+        catch (ArgumentNullException)
+        {
+            threw = true;
+        }
+
+        threw.Should().BeTrue("CreateAndEnter(null) must throw ArgumentNullException");
+    }
+
+    [Fact]
+    public void SwapTo_NullGate_Throws()
+    {
+        var gate = new object();
+        using var swappable = SwappableLock.CreateAndEnter(gate);
+
+        // ref struct cannot be captured by a lambda, so the assertion is expressed
+        // directly without FluentAssertions' Action-based throw matchers.
+        var threw = false;
+        try
+        {
+            swappable.SwapTo(null!);
+        }
+        catch (ArgumentNullException)
+        {
+            threw = true;
+        }
+
+        threw.Should().BeTrue("SwapTo(null) must throw ArgumentNullException");
+        Monitor.IsEntered(gate).Should().BeTrue("the original lock must remain held when SwapTo rejects a bad argument");
     }
 
 #endif
