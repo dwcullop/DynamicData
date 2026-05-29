@@ -1,10 +1,11 @@
-﻿// Copyright (c) 2011-2025 Roland Pheasant. All rights reserved.
+// Copyright (c) 2011-2025 Roland Pheasant. All rights reserved.
 // Roland Pheasant licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System.Reactive.Concurrency;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
+
+using DynamicData.Internal;
 
 namespace DynamicData.Cache.Internal;
 
@@ -18,23 +19,43 @@ internal sealed class AutoRefresh<TObject, TKey, TAny>(IObservable<IChangeSet<TO
 
     private readonly IObservable<IChangeSet<TObject, TKey>> _source = source ?? throw new ArgumentNullException(nameof(source));
 
-    public IObservable<IChangeSet<TObject, TKey>> Run() => Observable.Create<IChangeSet<TObject, TKey>>(
-            observer =>
+    public IObservable<IChangeSet<TObject, TKey>> Run() => Observable.Defer(() =>
+    {
+        var cache = new ChangeAwareCache<TObject, TKey>();
+
+        var changes = _source.AggregateMany<TObject, TKey, TAny, IChangeSet<TObject, TKey>>(
+            onParent: (parentChanges, setChild) =>
             {
-                var shared = _source.Publish();
+                cache.Clone(parentChanges);
 
-                // monitor each item observable and create change
-                var changes = shared.MergeMany((t, k) => _reEvaluator(t, k).Select(_ => new Change<TObject, TKey>(ChangeReason.Refresh, k, t)));
+                foreach (var change in parentChanges.ToConcreteType())
+                {
+                    switch (change.Reason)
+                    {
+                        case ChangeReason.Add or ChangeReason.Update:
+                            setChild(change.Key, _reEvaluator(change.Current, change.Key));
+                            break;
 
-                // create a change set, either buffered or one item at the time
-                IObservable<IChangeSet<TObject, TKey>> refreshChanges = buffer is null ?
-                    changes.Select(c => new ChangeSet<TObject, TKey>(new[] { c })) :
-                    changes.Buffer(buffer.Value, _scheduler).Where(list => list.Count > 0).Select(items => new ChangeSet<TObject, TKey>(items));
-
-                // publish refreshes and underlying changes
-                var queue = new SharedDeliveryQueue();
-                var publisher = shared.SynchronizeSafe(queue).Merge(refreshChanges.SynchronizeSafe(queue)).SubscribeSafe(observer);
-
-                return new CompositeDisposable(publisher, shared.Connect(), queue);
+                        case ChangeReason.Remove:
+                            setChild(change.Key, null);
+                            break;
+                    }
+                }
+            },
+            onChild: (_, parentKey) => cache.Refresh(parentKey),
+            tryEmit: observer =>
+            {
+                var captured = cache.CaptureChanges();
+                if (captured.Count > 0)
+                {
+                    observer.OnNext(captured);
+                }
             });
+
+        return buffer is null
+            ? changes
+            : changes.Buffer(buffer.Value, _scheduler)
+                     .Where(static batches => batches.Count > 0)
+                     .Select(static batches => new ChangeSet<TObject, TKey>(batches.SelectMany(static cs => cs)));
+    });
 }

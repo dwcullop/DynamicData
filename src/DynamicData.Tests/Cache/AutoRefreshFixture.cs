@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 
 using DynamicData.Binding;
 using DynamicData.Tests.Domain;
@@ -123,5 +125,55 @@ public class AutoRefreshFixture
             get => _value;
             set => SetAndRaise(ref _value, value);
         }
+    }
+
+    // Regression for #1099. When an item is added and removed within a single upstream
+    // changeset and the reevaluator emits synchronously upon subscription, the operator
+    // must not produce a Refresh for the now-removed item.
+    [Fact]
+    public void AutoRefreshOnObservable_AddAndRemoveInSameChangeSet_NoRefreshAfterRemove()
+    {
+        using var cache = new SourceCache<Person, string>(p => p.Name);
+        var person = new Person("Bob", 1);
+
+        using var results = cache.Connect()
+            .AutoRefreshOnObservable(_ => Observable.Return(Unit.Default))
+            .AsAggregator();
+
+        cache.Edit(updater =>
+        {
+            updater.AddOrUpdate(person);
+            updater.Remove(person);
+        });
+
+        results.Messages.Should().NotContain(
+            cs => cs.Refreshes > 0,
+            "an immediately-firing reevaluator must not produce a refresh for an item that no longer exists");
+        results.Data.Count.Should().Be(0);
+    }
+
+    // The reevaluator's emission, once subscribed, still produces Refresh changes as expected.
+    [Fact]
+    public void AutoRefreshOnObservable_ReevaluatorEmits_RefreshPropagates()
+    {
+        using var cache = new SourceCache<Person, string>(p => p.Name);
+        var person = new Person("Bob", 1);
+        var trigger = new Subject<Unit>();
+
+        using var results = cache.Connect()
+            .AutoRefreshOnObservable(_ => trigger)
+            .AsAggregator();
+
+        cache.AddOrUpdate(person);
+
+        var messagesAfterAdd = results.Messages.Count;
+
+        trigger.OnNext(Unit.Default);
+
+        results.Messages.Count.Should().Be(messagesAfterAdd + 1);
+        var refresh = results.Messages[^1];
+        refresh.Refreshes.Should().Be(1);
+        refresh.First().Reason.Should().Be(ChangeReason.Refresh);
+        refresh.First().Key.Should().Be("Bob");
     }
 }
