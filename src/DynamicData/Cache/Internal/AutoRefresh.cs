@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for full license information.
 
 using System.Reactive.Concurrency;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 
 using DynamicData.Internal;
@@ -19,43 +20,42 @@ internal sealed class AutoRefresh<TObject, TKey, TAny>(IObservable<IChangeSet<TO
 
     private readonly IObservable<IChangeSet<TObject, TKey>> _source = source ?? throw new ArgumentNullException(nameof(source));
 
-    public IObservable<IChangeSet<TObject, TKey>> Run() => Observable.Defer(() =>
+    public IObservable<IChangeSet<TObject, TKey>> Run() => Observable.Create<IChangeSet<TObject, TKey>>(observer =>
     {
-        var cache = new ChangeAwareCache<TObject, TKey>();
+        var shared = _source.Publish();
 
-        var changes = _source.AggregateMany<TObject, TKey, TAny, IChangeSet<TObject, TKey>>(
-            onParent: (parentChanges, setChild) =>
+        // Filters reevaluator emissions that fire synchronously during the initial Subscribe.
+        // The triggering Add/Update already conveys the item's current state, so a paired
+        // Refresh would be redundant. For an Add+Remove pair within a single source
+        // changeset, it would also reference an item no longer in the cache.
+        var refreshes = shared.MergeMany((t, k) =>
+            Observable.Create<Change<TObject, TKey>>(innerObserver =>
             {
-                cache.Clone(parentChanges);
+                var initialSubscribeInFlight = true;
+                var subscription = _reEvaluator(t, k)
+                    .Where(_ => !initialSubscribeInFlight)
+                    .Select(_ => new Change<TObject, TKey>(ChangeReason.Refresh, k, t))
+                    .Subscribe(innerObserver);
+                initialSubscribeInFlight = false;
+                return subscription;
+            }));
 
-                foreach (var change in parentChanges.ToConcreteType())
-                {
-                    switch (change.Reason)
-                    {
-                        case ChangeReason.Add or ChangeReason.Update:
-                            setChild(change.Key, _reEvaluator(change.Current, change.Key));
-                            break;
+        var refreshChangeSets = buffer is null
+            ? refreshes.Select(static c => (IChangeSet<TObject, TKey>)new ChangeSet<TObject, TKey>(new[] { c }))
+            : refreshes.Buffer(buffer.Value, _scheduler)
+                       .Where(static list => list.Count > 0)
+                       .Select(static items => (IChangeSet<TObject, TKey>)new ChangeSet<TObject, TKey>(items));
 
-                        case ChangeReason.Remove:
-                            setChild(change.Key, null);
-                            break;
-                    }
-                }
-            },
-            onChild: (_, parentKey) => cache.Refresh(parentKey),
-            tryEmit: observer =>
-            {
-                var captured = cache.CaptureChanges();
-                if (captured.Count > 0)
-                {
-                    observer.OnNext(captured);
-                }
-            });
+        var queue = new SharedDeliveryQueue();
 
-        return buffer is null
-            ? changes
-            : changes.Buffer(buffer.Value, _scheduler)
-                     .Where(static batches => batches.Count > 0)
-                     .Select(static batches => new ChangeSet<TObject, TKey>(batches.SelectMany(static cs => cs)));
+        // Subscription order to `shared` is significant. Subject<T> notifies subscribers in
+        // registration order, so subscribing the refresh branch first ensures each per-item
+        // reevaluator subscription is wired up (and any synchronous side effects it performs
+        // have executed) before the corresponding source change is delivered downstream.
+        var publisher = refreshChangeSets.SynchronizeSafe(queue)
+            .Merge(shared.SynchronizeSafe(queue))
+            .SubscribeSafe(observer);
+
+        return new CompositeDisposable(publisher, shared.Connect(), queue);
     });
 }
