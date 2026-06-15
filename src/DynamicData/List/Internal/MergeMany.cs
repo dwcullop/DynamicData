@@ -2,8 +2,6 @@
 // Roland Pheasant licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
-using System.Reactive.Linq;
-
 namespace DynamicData.List.Internal;
 
 internal sealed class MergeMany<T, TDestination>(IObservable<IChangeSet<T>> source, Func<T, IObservable<TDestination>> observableSelector)
@@ -22,12 +20,12 @@ internal sealed class MergeMany<T, TDestination>(IObservable<IChangeSet<T>> sour
                     switch (change.Reason)
                     {
                         case ListChangeReason.Add:
-                            context.Track(change.Item.Current, SelectInner(change.Item.Current.Item));
+                            context.Track(change.Item.Current, _observableSelector(change.Item.Current.Item));
                             break;
                         case ListChangeReason.AddRange:
                             foreach (var slot in change.Range)
                             {
-                                context.Track(slot, SelectInner(slot.Item));
+                                context.Track(slot, _observableSelector(slot.Item));
                             }
 
                             break;
@@ -37,7 +35,7 @@ internal sealed class MergeMany<T, TDestination>(IObservable<IChangeSet<T>> sour
                                 context.Untrack(change.Item.Previous.Value);
                             }
 
-                            context.Track(change.Item.Current, SelectInner(change.Item.Current.Item));
+                            context.Track(change.Item.Current, _observableSelector(change.Item.Current.Item));
                             break;
                         case ListChangeReason.Remove:
                             context.Untrack(change.Item.Current);
@@ -54,7 +52,4 @@ internal sealed class MergeMany<T, TDestination>(IObservable<IChangeSet<T>> sour
                 }
             },
             onInner: (value, _, emitter) => emitter.OnNext(value));
-
-    private IObservable<TDestination> SelectInner(T item) =>
-        _observableSelector(item).Catch<TDestination, Exception>(_ => Observable.Empty<TDestination>());
 }
