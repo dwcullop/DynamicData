@@ -1,10 +1,8 @@
-// Copyright (c) 2011-2025 Roland Pheasant. All rights reserved.
+﻿// Copyright (c) 2011-2025 Roland Pheasant. All rights reserved.
 // Roland Pheasant licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
 
 namespace DynamicData.List.Internal;
 
@@ -15,45 +13,48 @@ internal sealed class MergeMany<T, TDestination>(IObservable<IChangeSet<T>> sour
 
     private readonly IObservable<IChangeSet<T>> _source = source ?? throw new ArgumentNullException(nameof(source));
 
-    public IObservable<TDestination> Run() => Observable.Create<TDestination>(
-            observer =>
+    public IObservable<TDestination> Run() =>
+        _source.Orchestrate<T, TDestination, TDestination>(
+            onSourceChangeSet: (changes, context) =>
             {
-                var counter = new SubscriptionCounter();
-                var locker = InternalEx.NewLock();
-                var disposable = _source.Concat(counter.DeferCleanup)
-                                                .SubscribeMany(t =>
-                                                {
-                                                    counter.Added();
-                                                    return _observableSelector(t).Synchronize(locker).Finally(() => counter.Finally()).Subscribe(observer.OnNext, _ => { }, () => { });
-                                                })
-                                                .Subscribe(_ => { }, observer.OnError, observer.OnCompleted);
+                foreach (var change in changes)
+                {
+                    switch (change.Reason)
+                    {
+                        case ListChangeReason.Add:
+                            context.Track(change.Item.Current, SelectInner(change.Item.Current.Item));
+                            break;
+                        case ListChangeReason.AddRange:
+                            foreach (var slot in change.Range)
+                            {
+                                context.Track(slot, SelectInner(slot.Item));
+                            }
 
-                return new CompositeDisposable(disposable, counter);
-            });
+                            break;
+                        case ListChangeReason.Replace:
+                            if (change.Item.Previous.HasValue)
+                            {
+                                context.Untrack(change.Item.Previous.Value);
+                            }
 
-    private sealed class SubscriptionCounter : IDisposable
-    {
-        private readonly Subject<IChangeSet<T>> _subject = new();
-        private int _subscriptionCount = 1;
+                            context.Track(change.Item.Current, SelectInner(change.Item.Current.Item));
+                            break;
+                        case ListChangeReason.Remove:
+                            context.Untrack(change.Item.Current);
+                            break;
+                        case ListChangeReason.RemoveRange:
+                        case ListChangeReason.Clear:
+                            foreach (var slot in change.Range)
+                            {
+                                context.Untrack(slot);
+                            }
 
-        public IObservable<IChangeSet<T>> DeferCleanup => Observable.Defer(() =>
-        {
-            CheckCompleted();
-            return _subject.AsObservable();
-        });
+                            break;
+                    }
+                }
+            },
+            onInner: (value, _, emitter) => emitter.OnNext(value));
 
-        public void Added() => _ = Interlocked.Increment(ref _subscriptionCount);
-
-        public void Finally() => CheckCompleted();
-
-        public void Dispose() => _subject.Dispose();
-
-        private void CheckCompleted()
-        {
-            if (Interlocked.Decrement(ref _subscriptionCount) == 0)
-            {
-                _subject.OnCompleted();
-            }
-        }
-    }
+    private IObservable<TDestination> SelectInner(T item) =>
+        _observableSelector(item).Catch<TDestination, Exception>(_ => Observable.Empty<TDestination>());
 }
