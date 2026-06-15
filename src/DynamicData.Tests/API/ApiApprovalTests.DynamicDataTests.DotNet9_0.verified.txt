@@ -2337,6 +2337,9 @@ namespace DynamicData
         public static System.IObservable<DynamicData.IChangeSet<DynamicData.IGroup<TObject, TGroup>>> GroupOn<TObject, TGroup>(this System.IObservable<DynamicData.IChangeSet<TObject>> source, System.Func<TObject, TGroup> groupSelector, System.IObservable<System.Reactive.Unit>? regrouper = null)
             where TObject :  notnull
             where TGroup :  notnull { }
+        public static System.IObservable<DynamicData.IChangeSet<DynamicData.IGroup<TObject, TGroupKey>>> GroupOnObservable<TObject, TGroupKey>(this System.IObservable<DynamicData.IChangeSet<TObject>> source, System.Func<TObject, System.IObservable<TGroupKey>> groupKeySelector)
+            where TObject :  notnull
+            where TGroupKey :  notnull { }
         public static System.IObservable<DynamicData.IChangeSet<DynamicData.IGroup<TObject, TGroup>>> GroupOnProperty<TObject, TGroup>(this System.IObservable<DynamicData.IChangeSet<TObject>> source, System.Linq.Expressions.Expression<System.Func<TObject, TGroup>> propertySelector, System.TimeSpan? propertyChangedThrottle = default, System.Reactive.Concurrency.IScheduler? scheduler = null)
             where TObject : System.ComponentModel.INotifyPropertyChanged
             where TGroup :  notnull { }
@@ -2385,8 +2388,17 @@ namespace DynamicData
             where TObject :  notnull
             where TDestination :  notnull
             where TDestinationKey :  notnull { }
+        public static System.IObservable<DynamicData.IChangeSet<TDestination, TDestinationKey>> MergeManyChangeSets<TObject, TDestination, TDestinationKey>(this System.IObservable<DynamicData.IChangeSet<TObject>> source, System.Func<TObject, System.IObservable<DynamicData.IChangeSet<TDestination, TDestinationKey>>> observableSelector, System.Collections.Generic.IComparer<TObject> parentComparer, System.Collections.Generic.IEqualityComparer<TDestination>? equalityComparer = null, System.Collections.Generic.IComparer<TDestination>? childComparer = null)
+            where TObject :  notnull
+            where TDestination :  notnull
+            where TDestinationKey :  notnull { }
+        public static System.IObservable<DynamicData.Kernel.ItemWithValue<TObject, TDestination>> MergeManyItems<TObject, TDestination>(this System.IObservable<DynamicData.IChangeSet<TObject>> source, System.Func<TObject, System.IObservable<TDestination>> observableSelector)
+            where TObject :  notnull { }
         public static System.IObservable<DynamicData.IChangeSet<T>> NotEmpty<T>(this System.IObservable<DynamicData.IChangeSet<T>> source)
             where T :  notnull { }
+        public static System.IObservable<DynamicData.IChangeSet<TDestination>> OfType<TObject, TDestination>(this System.IObservable<DynamicData.IChangeSet<TObject>> source)
+            where TObject :  notnull
+            where TDestination :  notnull { }
         public static System.IObservable<DynamicData.IChangeSet<T>> OnItemAdded<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Action<T> addAction)
             where T :  notnull { }
         public static System.IObservable<DynamicData.IChangeSet<T>> OnItemRefreshed<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Action<T> refreshAction)
@@ -2493,6 +2505,18 @@ namespace DynamicData
         public static System.IObservable<DynamicData.IChangeSet<TDestination>> TransformMany<TDestination, TSource>(this System.IObservable<DynamicData.IChangeSet<TSource>> source, System.Func<TSource, System.Collections.ObjectModel.ReadOnlyObservableCollection<TDestination>> manySelector, System.Collections.Generic.IEqualityComparer<TDestination>? equalityComparer = null)
             where TDestination :  notnull
             where TSource :  notnull { }
+        public static System.IObservable<DynamicData.IChangeSet<TDestination>> TransformManyAsync<TSource, TDestination>(this System.IObservable<DynamicData.IChangeSet<TSource>> source, System.Func<TSource, System.Threading.Tasks.Task<System.IObservable<DynamicData.IChangeSet<TDestination>>>> transformer, System.Collections.Generic.IEqualityComparer<TDestination>? equalityComparer = null)
+            where TSource :  notnull
+            where TDestination :  notnull { }
+        public static System.IObservable<DynamicData.IChangeSet<TDestination>> TransformOnObservable<TSource, TDestination>(this System.IObservable<DynamicData.IChangeSet<TSource>> source, System.Func<TSource, System.IObservable<TDestination>> transformFactory)
+            where TSource :  notnull
+            where TDestination :  notnull { }
+        public static System.IObservable<bool> TrueForAll<TObject, TValue>(this System.IObservable<DynamicData.IChangeSet<TObject>> source, System.Func<TObject, System.IObservable<TValue>> observableSelector, System.Func<TValue, bool> equalityCondition)
+            where TObject :  notnull
+            where TValue :  notnull { }
+        public static System.IObservable<bool> TrueForAny<TObject, TValue>(this System.IObservable<DynamicData.IChangeSet<TObject>> source, System.Func<TObject, System.IObservable<TValue>> observableSelector, System.Func<TValue, bool> equalityCondition)
+            where TObject :  notnull
+            where TValue :  notnull { }
         public static System.IObservable<DynamicData.IVirtualChangeSet<T>> Virtualise<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.IObservable<DynamicData.IVirtualRequest> requests)
             where T :  notnull { }
         public static System.IObservable<TObject?> WhenAnyPropertyChanged<TObject>(this System.IObservable<DynamicData.IChangeSet<TObject>> source, params string[] propertiesToMonitor)
