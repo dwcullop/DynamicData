@@ -20,13 +20,14 @@ internal sealed class ListOrchestration<TSource, TInner, TResult>
 {
     private readonly IObserver<TResult> _downstream;
     private readonly SharedDeliveryQueue _queue;
-    private readonly Dictionary<IListSlot<TSource>, IDisposable> _innerSubscriptions = new();
+    private readonly Dictionary<IListSlot<TSource>, SingleAssignmentDisposable> _innerSubscriptions = new();
     private readonly CompositeDisposable _disposables = new();
     private readonly System.Reactive.Subjects.Subject<Action> _deferredActions = new();
 
     private IListOrchestrator<TSource, TInner, TResult>? _orchestrator;
     private int _subscriptionCount;
     private bool _isDisposed;
+    private bool _hasTerminated;
 
     public ListOrchestration(
         IObservable<IChangeSet<TSource>> source,
@@ -38,11 +39,10 @@ internal sealed class ListOrchestration<TSource, TInner, TResult>
         downstream.ThrowArgumentNullExceptionIfNull(nameof(downstream));
 
         _downstream = downstream;
+        _queue = new SharedDeliveryQueue(onDrainComplete: OnDrainComplete);
 
         try
         {
-            _queue = new SharedDeliveryQueue(onDrainComplete: OnDrainComplete);
-
             // Subscribe the deferred-action stream EARLY through the queue. This gives it a
             // low index in the SharedDeliveryQueue's sub-queue list. Because the SDQ drains
             // higher-index sub-queues first (LIFO), deferred actions fire AFTER any inner
@@ -56,15 +56,22 @@ internal sealed class ListOrchestration<TSource, TInner, TResult>
                     }
                     catch (Exception ex)
                     {
-                        _downstream.OnError(ex);
+                        Fail(ex);
                     }
                 }));
 
             _orchestrator = orchestratorFactory(this, _downstream);
 
             _subscriptionCount = 1;
-            var slottedSource = new SlotAllocator<TSource>(source).Run();
-            _disposables.Add(slottedSource.SynchronizeSafe(_queue).Subscribe(
+
+            // CRITICAL: route the raw source THROUGH the SDQ before SlotAllocator sees it.
+            // If SlotAllocator runs on the source-emit thread (outside the queue), it can
+            // mutate slot.CurrentIndex / IsReleased while a previous drain on a different
+            // thread is concurrently reading those fields from inner-observable handlers.
+            // By queueing the source first, all slot allocation and index shifts happen on
+            // the drain thread, in the same serialization domain as OnInner callbacks.
+            var slottedSource = new SlotAllocator<TSource>(source.SynchronizeSafe(_queue)).Run();
+            _disposables.Add(slottedSource.Subscribe(
                 onNext: OnSourceNext,
                 onError: OnSourceError,
                 onCompleted: OnSourceCompleted));
@@ -72,7 +79,8 @@ internal sealed class ListOrchestration<TSource, TInner, TResult>
         catch
         {
             _disposables.Dispose();
-            _queue?.Dispose();
+            _queue.Dispose();
+            _deferredActions.Dispose();
             throw;
         }
     }
@@ -84,29 +92,33 @@ internal sealed class ListOrchestration<TSource, TInner, TResult>
 
         if (_isDisposed) return;
 
+        // Replace path: dispose existing and overwrite (no net subscription count change).
         if (_innerSubscriptions.TryGetValue(slot, out var existing))
         {
             existing.Dispose();
             _innerSubscriptions.Remove(slot);
-            Interlocked.Decrement(ref _subscriptionCount);
+        }
+        else
+        {
+            Interlocked.Increment(ref _subscriptionCount);
         }
 
-        Interlocked.Increment(ref _subscriptionCount);
-        var sub = observable.SynchronizeSafe(_queue).Subscribe(
+        // Register the container BEFORE calling Subscribe so that synchronously-completing
+        // inner observables (Observable.Empty, Observable.Return, etc.) can find and dispose
+        // their entry from the completion handler. Otherwise the entry would be written
+        // after Subscribe returns, leaving a stale completed subscription that a later
+        // Untrack would incorrectly decrement the count for a second time.
+        var container = new SingleAssignmentDisposable();
+        _innerSubscriptions[slot] = container;
+
+        container.Disposable = observable.SynchronizeSafe(_queue).Subscribe(
             onNext: value => _orchestrator?.OnInner(value, slot, _downstream),
             onError: ex =>
             {
-                _innerSubscriptions.Remove(slot);
-                Interlocked.Decrement(ref _subscriptionCount);
-                _downstream.OnError(ex);
+                TryReleaseOnTerminal(slot, container);
+                Fail(ex);
             },
-            onCompleted: () =>
-            {
-                _innerSubscriptions.Remove(slot);
-                Interlocked.Decrement(ref _subscriptionCount);
-            });
-
-        _innerSubscriptions[slot] = sub;
+            onCompleted: () => TryReleaseOnTerminal(slot, container));
     }
 
     public void Untrack(IListSlot<TSource> slot)
@@ -116,8 +128,10 @@ internal sealed class ListOrchestration<TSource, TInner, TResult>
         if (_innerSubscriptions.TryGetValue(slot, out var sub))
         {
             sub.Dispose();
-            _innerSubscriptions.Remove(slot);
-            Interlocked.Decrement(ref _subscriptionCount);
+            if (_innerSubscriptions.Remove(slot))
+            {
+                Interlocked.Decrement(ref _subscriptionCount);
+            }
         }
     }
 
@@ -147,28 +161,46 @@ internal sealed class ListOrchestration<TSource, TInner, TResult>
         // can mutate _innerSubscriptions concurrently with the iteration below.
         _queue.Dispose();
 
+        // Orchestrator may own its own resources (buffer subscriptions, scheduler timers,
+        // Subjects) - give it a chance to tear them down before we clear the inner table.
+        (_orchestrator as IDisposable)?.Dispose();
+        _orchestrator = null;
+
         _deferredActions.Dispose();
 
         foreach (var sub in _innerSubscriptions.Values) sub.Dispose();
         _innerSubscriptions.Clear();
     }
 
+    private void TryReleaseOnTerminal(IListSlot<TSource> slot, SingleAssignmentDisposable container)
+    {
+        // Only release if THIS container is still the registered one. Defends against the case
+        // where a replacement Track happened between when we subscribed and when the inner
+        // completed, swapping out our container.
+        if (_innerSubscriptions.TryGetValue(slot, out var current) && ReferenceEquals(current, container))
+        {
+            _innerSubscriptions.Remove(slot);
+            Interlocked.Decrement(ref _subscriptionCount);
+        }
+    }
+
     private void OnSourceNext(IChangeSet<IListSlot<TSource>> changes)
     {
+        if (_hasTerminated) return;
         try
         {
             _orchestrator?.OnSourceChangeSet(changes, this);
         }
         catch (Exception ex)
         {
-            _downstream.OnError(ex);
+            Fail(ex);
         }
     }
 
     private void OnSourceError(Exception ex)
     {
         Interlocked.Decrement(ref _subscriptionCount);
-        _downstream.OnError(ex);
+        Fail(ex);
     }
 
     private void OnSourceCompleted()
@@ -178,7 +210,7 @@ internal sealed class ListOrchestration<TSource, TInner, TResult>
 
     private void OnDrainComplete()
     {
-        if (_isDisposed) return;
+        if (_isDisposed || _hasTerminated) return;
 
         var isFinal = Volatile.Read(ref _subscriptionCount) == 0;
         try
@@ -187,13 +219,21 @@ internal sealed class ListOrchestration<TSource, TInner, TResult>
         }
         catch (Exception ex)
         {
-            _downstream.OnError(ex);
+            Fail(ex);
             return;
         }
 
-        if (isFinal)
+        if (isFinal && !_hasTerminated)
         {
+            _hasTerminated = true;
             _downstream.OnCompleted();
         }
+    }
+
+    private void Fail(Exception ex)
+    {
+        if (_hasTerminated) return;
+        _hasTerminated = true;
+        _downstream.OnError(ex);
     }
 }

@@ -22,6 +22,8 @@ internal sealed class BufferedAutoRefreshOrchestrator<TObject, TAny> : IListOrch
     private readonly IScheduler _scheduler;
     private readonly Subject<IListSlot<TObject>> _refreshSignals = new();
     private readonly List<Change<TObject>> _pendingSourceChanges = new();
+    private readonly IDisposable _bufferSubscription;
+    private bool _isDisposed;
 
     public BufferedAutoRefreshOrchestrator(
         Func<TObject, IObservable<TAny>> reEvaluator,
@@ -38,19 +40,13 @@ internal sealed class BufferedAutoRefreshOrchestrator<TObject, TAny> : IListOrch
             .Buffer(_buffer, _scheduler)
             .Where(batch => batch.Count > 0);
 
-        context.Serialize(batched).Subscribe(batch =>
+        // Capture the subscription so we can dispose it. Without this, the Buffer's scheduler
+        // timer keeps firing for the lifetime of the process, holding the Subject (and the
+        // emitter closure transitively) alive per subscription.
+        _bufferSubscription = context.Serialize(batched).Subscribe(batch =>
         {
-            var refreshes = new ChangeSet<TObject>(batch.Count);
-            foreach (var slot in batch)
-            {
-                if (slot.IsReleased) continue;
-                refreshes.Add(new Change<TObject>(ListChangeReason.Refresh, slot.Item, Optional<TObject>.None, slot.CurrentIndex));
-            }
-
-            if (refreshes.Count > 0)
-            {
-                emitter.OnNext(refreshes);
-            }
+            if (_isDisposed) return;
+            EmitBatch(batch, emitter);
         });
     }
 
@@ -103,12 +99,41 @@ internal sealed class BufferedAutoRefreshOrchestrator<TObject, TAny> : IListOrch
 
     public void OnDrainComplete(bool isFinal, IObserver<IChangeSet<TObject>> emitter)
     {
-        if (_pendingSourceChanges.Count == 0) return;
+        if (_pendingSourceChanges.Count > 0)
+        {
+            var snapshot = new ChangeSet<TObject>(_pendingSourceChanges);
+            _pendingSourceChanges.Clear();
+            emitter.OnNext(snapshot);
+        }
 
-        var snapshot = new ChangeSet<TObject>(_pendingSourceChanges);
-        _pendingSourceChanges.Clear();
-        emitter.OnNext(snapshot);
+        // On final drain, force-complete the buffer subject so any in-flight Buffer window
+        // is flushed before downstream OnCompleted fires.
+        if (isFinal && !_isDisposed)
+        {
+            _refreshSignals.OnCompleted();
+        }
     }
 
-    public void Dispose() => _refreshSignals.Dispose();
+    public void Dispose()
+    {
+        if (_isDisposed) return;
+        _isDisposed = true;
+        _bufferSubscription.Dispose();
+        _refreshSignals.Dispose();
+    }
+
+    private static void EmitBatch(IList<IListSlot<TObject>> batch, IObserver<IChangeSet<TObject>> emitter)
+    {
+        var refreshes = new ChangeSet<TObject>(batch.Count);
+        foreach (var slot in batch)
+        {
+            if (slot.IsReleased) continue;
+            refreshes.Add(new Change<TObject>(ListChangeReason.Refresh, slot.Item, Optional<TObject>.None, slot.CurrentIndex));
+        }
+
+        if (refreshes.Count > 0)
+        {
+            emitter.OnNext(refreshes);
+        }
+    }
 }

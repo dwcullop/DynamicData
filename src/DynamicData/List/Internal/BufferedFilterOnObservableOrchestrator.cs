@@ -24,6 +24,8 @@ internal sealed class BufferedFilterOnObservableOrchestrator<TObject>
     private readonly Subject<FilterUpdate> _filterUpdates = new();
     private readonly Dictionary<IListSlot<TObject>, ObjWithFilterValue<TObject>> _slotToWrapper = new();
     private readonly List<Change<ObjWithFilterValue<TObject>>> _pendingSourceChanges = new();
+    private readonly IDisposable _bufferSubscription;
+    private bool _isDisposed;
 
     public BufferedFilterOnObservableOrchestrator(
         Func<TObject, IObservable<bool>> filter,
@@ -40,23 +42,13 @@ internal sealed class BufferedFilterOnObservableOrchestrator<TObject>
             .Buffer(_buffer, _scheduler)
             .Where(batch => batch.Count > 0);
 
-        context.Serialize(batched).Subscribe(batch =>
+        // Capture the subscription so we can dispose it. Without this, the Buffer's scheduler
+        // timer keeps firing for the lifetime of the process, holding the Subject (and the
+        // emitter closure transitively) alive per subscription.
+        _bufferSubscription = context.Serialize(batched).Subscribe(batch =>
         {
-            var refreshes = new ChangeSet<ObjWithFilterValue<TObject>>(batch.Count);
-            foreach (var update in batch)
-            {
-                if (update.Slot.IsReleased) continue;
-                refreshes.Add(new Change<ObjWithFilterValue<TObject>>(
-                    ListChangeReason.Refresh,
-                    update.Wrapper,
-                    Optional<ObjWithFilterValue<TObject>>.None,
-                    update.Slot.CurrentIndex));
-            }
-
-            if (refreshes.Count > 0)
-            {
-                emitter.OnNext(refreshes);
-            }
+            if (_isDisposed) return;
+            EmitBatch(batch, emitter);
         });
     }
 
@@ -204,14 +196,47 @@ internal sealed class BufferedFilterOnObservableOrchestrator<TObject>
 
     public void OnDrainComplete(bool isFinal, IObserver<IChangeSet<ObjWithFilterValue<TObject>>> emitter)
     {
-        if (_pendingSourceChanges.Count == 0) return;
+        if (_pendingSourceChanges.Count > 0)
+        {
+            var snapshot = new ChangeSet<ObjWithFilterValue<TObject>>(_pendingSourceChanges);
+            _pendingSourceChanges.Clear();
+            emitter.OnNext(snapshot);
+        }
 
-        var snapshot = new ChangeSet<ObjWithFilterValue<TObject>>(_pendingSourceChanges);
-        _pendingSourceChanges.Clear();
-        emitter.OnNext(snapshot);
+        // On final drain, force-complete the buffer subject so any in-flight Buffer window
+        // is flushed before downstream OnCompleted fires.
+        if (isFinal && !_isDisposed)
+        {
+            _filterUpdates.OnCompleted();
+        }
     }
 
-    public void Dispose() => _filterUpdates.Dispose();
+    public void Dispose()
+    {
+        if (_isDisposed) return;
+        _isDisposed = true;
+        _bufferSubscription.Dispose();
+        _filterUpdates.Dispose();
+    }
+
+    private static void EmitBatch(IList<FilterUpdate> batch, IObserver<IChangeSet<ObjWithFilterValue<TObject>>> emitter)
+    {
+        var refreshes = new ChangeSet<ObjWithFilterValue<TObject>>(batch.Count);
+        foreach (var update in batch)
+        {
+            if (update.Slot.IsReleased) continue;
+            refreshes.Add(new Change<ObjWithFilterValue<TObject>>(
+                ListChangeReason.Refresh,
+                update.Wrapper,
+                Optional<ObjWithFilterValue<TObject>>.None,
+                update.Slot.CurrentIndex));
+        }
+
+        if (refreshes.Count > 0)
+        {
+            emitter.OnNext(refreshes);
+        }
+    }
 
     private readonly record struct FilterUpdate(IListSlot<TObject> Slot, ObjWithFilterValue<TObject> Wrapper);
 }
