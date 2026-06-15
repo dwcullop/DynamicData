@@ -78,6 +78,42 @@ public class SubscribeManyFixture : IDisposable
         _results.Messages[1].First().Item.Current.IsSubscribed.Should().Be(false, "Should be be unsubscribed");
     }
 
+    [Fact]
+    public void DuplicateItemRemove_OnlyRemovedOccurrencesSubscriptionDisposed()
+    {
+        // Lists allow the same reference to appear at multiple positions. The legacy
+        // Transform+DisposeMany implementation matched disposals by item value/reference,
+        // so removing one of two duplicates would dispose both subscriptions. The slot-
+        // based implementation gives each occurrence a stable identity so only the removed
+        // occurrence's subscription is disposed.
+        var item = new TrackedSubscribable();
+        var source = new SourceList<TrackedSubscribable>();
+        using var sub = source.Connect()
+            .SubscribeMany(t => t.Subscribe())
+            .Subscribe();
+
+        source.Add(item);
+        source.Add(item);
+        item.ActiveSubscriptions.Should().Be(2, "the same reference appears twice; each gets its own subscription");
+
+        source.RemoveAt(0);
+        item.ActiveSubscriptions.Should().Be(1, "only one occurrence was removed; the other's subscription stays alive");
+
+        source.RemoveAt(0);
+        item.ActiveSubscriptions.Should().Be(0);
+    }
+
+    private sealed class TrackedSubscribable
+    {
+        public int ActiveSubscriptions { get; private set; }
+
+        public IDisposable Subscribe()
+        {
+            ActiveSubscriptions++;
+            return System.Reactive.Disposables.Disposable.Create(() => ActiveSubscriptions--);
+        }
+    }
+
     private class SubscribeableObject(int id)
     {
         public bool IsSubscribed { get; private set; }

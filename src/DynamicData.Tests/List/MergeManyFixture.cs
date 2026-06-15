@@ -111,27 +111,31 @@ public class MergeManyFixture : IDisposable
     }
 
     /// <summary>
-    /// Stream completes even if one of the children fails.
+    /// Inner-observable errors propagate to the merged stream (Rx contract).
     /// </summary>
+    /// <remarks>
+    /// This is a behavior change from the previous implementation, which silently swallowed
+    /// inner errors. Per the Rx contract, errors from any source in a merged stream must
+    /// terminate the merged stream. Consumers that need the legacy behavior can wrap their
+    /// inner observables in <c>.Catch&lt;TDestination, Exception&gt;(_ =&gt; Observable.Empty&lt;TDestination&gt;())</c>.
+    /// </remarks>
     [Fact]
-    public void MergedStreamCompletesIfLastItemFails()
+    public void MergedStreamFailsWhenInnerItemFails()
     {
         var receivedError = default(Exception);
         var streamCompleted = false;
-        var sourceCompleted = false;
+        var expectedError = new Exception("Test exception");
 
         var item = new ObjectWithObservable(1);
         _source.Add(item);
 
-        using var stream = _source.Connect().Do(_ => { }, () => sourceCompleted = true)
+        using var stream = _source.Connect()
                 .MergeMany(o => o.Observable).Subscribe(_ => { }, err => receivedError = err, () => streamCompleted = true);
 
-        _source.Dispose();
-        item.FailObservable(new Exception("Test exception"));
+        item.FailObservable(expectedError);
 
-        receivedError.Should().Be(default);
-        sourceCompleted.Should().BeTrue();
-        streamCompleted.Should().BeTrue();
+        receivedError.Should().BeSameAs(expectedError);
+        streamCompleted.Should().BeFalse();
     }
 
     /// <summary>
