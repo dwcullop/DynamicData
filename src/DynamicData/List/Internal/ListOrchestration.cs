@@ -139,11 +139,18 @@ internal sealed class ListOrchestration<TSource, TInner, TResult>
         if (_isDisposed) return;
         _isDisposed = true;
 
+        // Stop incoming source notifications first so no new slots can be tracked.
+        _disposables.Dispose();
+
+        // Drain and terminate the queue. This blocks until any in-flight delivery completes,
+        // guaranteeing that no further orchestrator callbacks (TrackSlot/UntrackSlot/etc.)
+        // can mutate _innerSubscriptions concurrently with the iteration below.
+        _queue.Dispose();
+
+        _deferredActions.Dispose();
+
         foreach (var sub in _innerSubscriptions.Values) sub.Dispose();
         _innerSubscriptions.Clear();
-        _disposables.Dispose();
-        _deferredActions.Dispose();
-        _queue.Dispose();
     }
 
     private void OnSourceNext(IChangeSet<IListSlot<TSource>> changes)

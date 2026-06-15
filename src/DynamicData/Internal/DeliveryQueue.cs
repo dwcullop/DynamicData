@@ -59,6 +59,13 @@ internal sealed class DeliveryQueue<T> : IObserver<T>, IDisposable
     public bool IsTerminated => _isTerminated;
 
     /// <summary>
+    /// Gets whether the calling thread is currently the active drain thread for this queue.
+    /// Useful for avoiding deadlock when waiting for the queue to terminate from within a
+    /// subscriber callback.
+    /// </summary>
+    public bool IsCurrentThreadDraining => Volatile.Read(ref _drainThreadId) == Environment.CurrentManagedThreadId;
+
+    /// <summary>
     /// Terminates the queue (rejecting further enqueues) and blocks until
     /// any in-flight delivery has completed. After this returns, no more
     /// observer callbacks will fire. Safe to call from within a delivery
