@@ -1,7 +1,7 @@
 ﻿[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("DynamicData.Profile")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("DynamicData.ReactiveUI")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("DynamicData.Tests")]
-[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v8.0", FrameworkDisplayName=".NET 8.0")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v9.0", FrameworkDisplayName=".NET 9.0")]
 namespace DynamicData.Aggregation
 {
     public readonly struct AggregateItem<TObject> : System.IEquatable<DynamicData.Aggregation.AggregateItem<TObject>>
@@ -33,60 +33,60 @@ namespace DynamicData.Aggregation
     public static class AvgEx
     {
         public static System.IObservable<decimal> Avg<T>(this System.IObservable<DynamicData.Aggregation.IAggregateChangeSet<T>> source, System.Func<T, decimal> valueSelector, [System.Runtime.CompilerServices.DecimalConstant(0, 0, 0u, 0u, 0u)] decimal emptyValue) { }
-        public static System.IObservable<double> Avg<T>(this System.IObservable<DynamicData.Aggregation.IAggregateChangeSet<T>> source, System.Func<T, double> valueSelector, double emptyValue = 0) { }
-        public static System.IObservable<double> Avg<T>(this System.IObservable<DynamicData.Aggregation.IAggregateChangeSet<T>> source, System.Func<T, int> valueSelector, int emptyValue = 0) { }
-        public static System.IObservable<double> Avg<T>(this System.IObservable<DynamicData.Aggregation.IAggregateChangeSet<T>> source, System.Func<T, long> valueSelector, long emptyValue = 0) { }
-        public static System.IObservable<float> Avg<T>(this System.IObservable<DynamicData.Aggregation.IAggregateChangeSet<T>> source, System.Func<T, float> valueSelector, float emptyValue = 0) { }
         public static System.IObservable<decimal> Avg<T>(this System.IObservable<DynamicData.Aggregation.IAggregateChangeSet<T>> source, System.Func<T, decimal?> valueSelector, [System.Runtime.CompilerServices.DecimalConstant(0, 0, 0u, 0u, 0u)] decimal emptyValue) { }
+        public static System.IObservable<double> Avg<T>(this System.IObservable<DynamicData.Aggregation.IAggregateChangeSet<T>> source, System.Func<T, double> valueSelector, double emptyValue = 0) { }
         public static System.IObservable<double> Avg<T>(this System.IObservable<DynamicData.Aggregation.IAggregateChangeSet<T>> source, System.Func<T, double?> valueSelector, double emptyValue = 0) { }
+        public static System.IObservable<float> Avg<T>(this System.IObservable<DynamicData.Aggregation.IAggregateChangeSet<T>> source, System.Func<T, float> valueSelector, float emptyValue = 0) { }
         public static System.IObservable<float> Avg<T>(this System.IObservable<DynamicData.Aggregation.IAggregateChangeSet<T>> source, System.Func<T, float?> valueSelector, float emptyValue = 0) { }
+        public static System.IObservable<double> Avg<T>(this System.IObservable<DynamicData.Aggregation.IAggregateChangeSet<T>> source, System.Func<T, int> valueSelector, int emptyValue = 0) { }
         public static System.IObservable<double> Avg<T>(this System.IObservable<DynamicData.Aggregation.IAggregateChangeSet<T>> source, System.Func<T, int?> valueSelector, int emptyValue = 0) { }
+        public static System.IObservable<double> Avg<T>(this System.IObservable<DynamicData.Aggregation.IAggregateChangeSet<T>> source, System.Func<T, long> valueSelector, long emptyValue = 0) { }
         public static System.IObservable<double> Avg<T>(this System.IObservable<DynamicData.Aggregation.IAggregateChangeSet<T>> source, System.Func<T, long?> valueSelector, long emptyValue = 0) { }
         public static System.IObservable<decimal> Avg<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Func<T, decimal> valueSelector, [System.Runtime.CompilerServices.DecimalConstant(0, 0, 0u, 0u, 0u)] decimal emptyValue)
             where T :  notnull { }
-        public static System.IObservable<double> Avg<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Func<T, double> valueSelector, double emptyValue = 0)
-            where T :  notnull { }
-        public static System.IObservable<double> Avg<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Func<T, int> valueSelector, int emptyValue = 0)
-            where T :  notnull { }
-        public static System.IObservable<double> Avg<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Func<T, long> valueSelector, long emptyValue = 0)
-            where T :  notnull { }
-        public static System.IObservable<float> Avg<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Func<T, float> valueSelector, float emptyValue = 0)
-            where T :  notnull { }
         public static System.IObservable<decimal> Avg<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Func<T, decimal?> valueSelector, [System.Runtime.CompilerServices.DecimalConstant(0, 0, 0u, 0u, 0u)] decimal emptyValue)
+            where T :  notnull { }
+        public static System.IObservable<double> Avg<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Func<T, double> valueSelector, double emptyValue = 0)
             where T :  notnull { }
         public static System.IObservable<double> Avg<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Func<T, double?> valueSelector, double emptyValue = 0)
             where T :  notnull { }
+        public static System.IObservable<float> Avg<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Func<T, float> valueSelector, float emptyValue = 0)
+            where T :  notnull { }
         public static System.IObservable<float> Avg<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Func<T, float?> valueSelector, float emptyValue = 0)
             where T :  notnull { }
+        public static System.IObservable<double> Avg<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Func<T, int> valueSelector, int emptyValue = 0)
+            where T :  notnull { }
         public static System.IObservable<double> Avg<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Func<T, int?> valueSelector, int emptyValue = 0)
+            where T :  notnull { }
+        public static System.IObservable<double> Avg<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Func<T, long> valueSelector, long emptyValue = 0)
             where T :  notnull { }
         public static System.IObservable<double> Avg<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Func<T, long?> valueSelector, long emptyValue = 0)
             where T :  notnull { }
         public static System.IObservable<decimal> Avg<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, decimal> valueSelector, [System.Runtime.CompilerServices.DecimalConstant(0, 0, 0u, 0u, 0u)] decimal emptyValue)
             where TObject :  notnull
             where TKey :  notnull { }
-        public static System.IObservable<double> Avg<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, double> valueSelector, double emptyValue = 0)
-            where TObject :  notnull
-            where TKey :  notnull { }
-        public static System.IObservable<double> Avg<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, int> valueSelector, int emptyValue = 0)
-            where TObject :  notnull
-            where TKey :  notnull { }
-        public static System.IObservable<double> Avg<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, long> valueSelector, long emptyValue = 0)
-            where TObject :  notnull
-            where TKey :  notnull { }
-        public static System.IObservable<float> Avg<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, float> valueSelector, float emptyValue = 0)
-            where TObject :  notnull
-            where TKey :  notnull { }
         public static System.IObservable<decimal> Avg<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, decimal?> valueSelector, [System.Runtime.CompilerServices.DecimalConstant(0, 0, 0u, 0u, 0u)] decimal emptyValue)
+            where TObject :  notnull
+            where TKey :  notnull { }
+        public static System.IObservable<double> Avg<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, double> valueSelector, double emptyValue = 0)
             where TObject :  notnull
             where TKey :  notnull { }
         public static System.IObservable<double> Avg<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, double?> valueSelector, double emptyValue = 0)
             where TObject :  notnull
             where TKey :  notnull { }
+        public static System.IObservable<float> Avg<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, float> valueSelector, float emptyValue = 0)
+            where TObject :  notnull
+            where TKey :  notnull { }
         public static System.IObservable<float> Avg<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, float?> valueSelector, float emptyValue = 0)
             where TObject :  notnull
             where TKey :  notnull { }
+        public static System.IObservable<double> Avg<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, int> valueSelector, int emptyValue = 0)
+            where TObject :  notnull
+            where TKey :  notnull { }
         public static System.IObservable<double> Avg<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, int?> valueSelector, int emptyValue = 0)
+            where TObject :  notnull
+            where TKey :  notnull { }
+        public static System.IObservable<double> Avg<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, long> valueSelector, long emptyValue = 0)
             where TObject :  notnull
             where TKey :  notnull { }
         public static System.IObservable<double> Avg<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, long?> valueSelector, long emptyValue = 0)
@@ -136,23 +136,26 @@ namespace DynamicData.Aggregation
     {
         public static System.IObservable<decimal> StdDev<T>(this System.IObservable<DynamicData.Aggregation.IAggregateChangeSet<T>> source, System.Func<T, decimal> valueSelector, [System.Runtime.CompilerServices.DecimalConstant(0, 0, 0u, 0u, 0u)] decimal fallbackValue) { }
         public static System.IObservable<double> StdDev<T>(this System.IObservable<DynamicData.Aggregation.IAggregateChangeSet<T>> source, System.Func<T, double> valueSelector, double fallbackValue = 0) { }
+        public static System.IObservable<double> StdDev<T>(this System.IObservable<DynamicData.Aggregation.IAggregateChangeSet<T>> source, System.Func<T, float> valueSelector, float fallbackValue = 0) { }
         public static System.IObservable<double> StdDev<T>(this System.IObservable<DynamicData.Aggregation.IAggregateChangeSet<T>> source, System.Func<T, int> valueSelector, int fallbackValue = 0) { }
         public static System.IObservable<double> StdDev<T>(this System.IObservable<DynamicData.Aggregation.IAggregateChangeSet<T>> source, System.Func<T, long> valueSelector, long fallbackValue = 0) { }
-        public static System.IObservable<double> StdDev<T>(this System.IObservable<DynamicData.Aggregation.IAggregateChangeSet<T>> source, System.Func<T, float> valueSelector, float fallbackValue = 0) { }
         public static System.IObservable<decimal> StdDev<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Func<T, decimal> valueSelector, decimal fallbackValue)
             where T :  notnull { }
         public static System.IObservable<double> StdDev<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Func<T, double> valueSelector, double fallbackValue)
+            where T :  notnull { }
+        public static System.IObservable<double> StdDev<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Func<T, float> valueSelector, float fallbackValue = 0)
             where T :  notnull { }
         public static System.IObservable<double> StdDev<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Func<T, int> valueSelector, int fallbackValue)
             where T :  notnull { }
         public static System.IObservable<double> StdDev<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Func<T, long> valueSelector, long fallbackValue)
             where T :  notnull { }
-        public static System.IObservable<double> StdDev<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Func<T, float> valueSelector, float fallbackValue = 0)
-            where T :  notnull { }
         public static System.IObservable<decimal> StdDev<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, decimal> valueSelector, decimal fallbackValue)
             where TObject :  notnull
             where TKey :  notnull { }
         public static System.IObservable<double> StdDev<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, double> valueSelector, double fallbackValue)
+            where TObject :  notnull
+            where TKey :  notnull { }
+        public static System.IObservable<double> StdDev<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, float> valueSelector, float fallbackValue = 0)
             where TObject :  notnull
             where TKey :  notnull { }
         public static System.IObservable<double> StdDev<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, int> valueSelector, int fallbackValue)
@@ -161,67 +164,64 @@ namespace DynamicData.Aggregation
         public static System.IObservable<double> StdDev<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, long> valueSelector, long fallbackValue)
             where TObject :  notnull
             where TKey :  notnull { }
-        public static System.IObservable<double> StdDev<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, float> valueSelector, float fallbackValue = 0)
-            where TObject :  notnull
-            where TKey :  notnull { }
     }
     public static class SumEx
     {
         public static System.IObservable<decimal> Sum<T>(this System.IObservable<DynamicData.Aggregation.IAggregateChangeSet<T>> source, System.Func<T, decimal> valueSelector) { }
-        public static System.IObservable<double> Sum<T>(this System.IObservable<DynamicData.Aggregation.IAggregateChangeSet<T>> source, System.Func<T, double> valueSelector) { }
-        public static System.IObservable<int> Sum<T>(this System.IObservable<DynamicData.Aggregation.IAggregateChangeSet<T>> source, System.Func<T, int> valueSelector) { }
-        public static System.IObservable<long> Sum<T>(this System.IObservable<DynamicData.Aggregation.IAggregateChangeSet<T>> source, System.Func<T, long> valueSelector) { }
-        public static System.IObservable<float> Sum<T>(this System.IObservable<DynamicData.Aggregation.IAggregateChangeSet<T>> source, System.Func<T, float> valueSelector) { }
         public static System.IObservable<decimal> Sum<T>(this System.IObservable<DynamicData.Aggregation.IAggregateChangeSet<T>> source, System.Func<T, decimal?> valueSelector) { }
+        public static System.IObservable<double> Sum<T>(this System.IObservable<DynamicData.Aggregation.IAggregateChangeSet<T>> source, System.Func<T, double> valueSelector) { }
         public static System.IObservable<double> Sum<T>(this System.IObservable<DynamicData.Aggregation.IAggregateChangeSet<T>> source, System.Func<T, double?> valueSelector) { }
+        public static System.IObservable<float> Sum<T>(this System.IObservable<DynamicData.Aggregation.IAggregateChangeSet<T>> source, System.Func<T, float> valueSelector) { }
         public static System.IObservable<float> Sum<T>(this System.IObservable<DynamicData.Aggregation.IAggregateChangeSet<T>> source, System.Func<T, float?> valueSelector) { }
+        public static System.IObservable<int> Sum<T>(this System.IObservable<DynamicData.Aggregation.IAggregateChangeSet<T>> source, System.Func<T, int> valueSelector) { }
         public static System.IObservable<int> Sum<T>(this System.IObservable<DynamicData.Aggregation.IAggregateChangeSet<T>> source, System.Func<T, int?> valueSelector) { }
+        public static System.IObservable<long> Sum<T>(this System.IObservable<DynamicData.Aggregation.IAggregateChangeSet<T>> source, System.Func<T, long> valueSelector) { }
         public static System.IObservable<long> Sum<T>(this System.IObservable<DynamicData.Aggregation.IAggregateChangeSet<T>> source, System.Func<T, long?> valueSelector) { }
         public static System.IObservable<decimal> Sum<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Func<T, decimal> valueSelector)
             where T :  notnull { }
-        public static System.IObservable<double> Sum<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Func<T, double> valueSelector)
-            where T :  notnull { }
-        public static System.IObservable<int> Sum<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Func<T, int> valueSelector)
-            where T :  notnull { }
-        public static System.IObservable<long> Sum<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Func<T, long> valueSelector)
-            where T :  notnull { }
-        public static System.IObservable<float> Sum<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Func<T, float> valueSelector)
-            where T :  notnull { }
         public static System.IObservable<decimal> Sum<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Func<T, decimal?> valueSelector)
+            where T :  notnull { }
+        public static System.IObservable<double> Sum<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Func<T, double> valueSelector)
             where T :  notnull { }
         public static System.IObservable<double> Sum<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Func<T, double?> valueSelector)
             where T :  notnull { }
+        public static System.IObservable<float> Sum<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Func<T, float> valueSelector)
+            where T :  notnull { }
         public static System.IObservable<float> Sum<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Func<T, float?> valueSelector)
             where T :  notnull { }
+        public static System.IObservable<int> Sum<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Func<T, int> valueSelector)
+            where T :  notnull { }
         public static System.IObservable<int> Sum<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Func<T, int?> valueSelector)
+            where T :  notnull { }
+        public static System.IObservable<long> Sum<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Func<T, long> valueSelector)
             where T :  notnull { }
         public static System.IObservable<long> Sum<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Func<T, long?> valueSelector)
             where T :  notnull { }
         public static System.IObservable<decimal> Sum<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, decimal> valueSelector)
             where TObject :  notnull
             where TKey :  notnull { }
-        public static System.IObservable<double> Sum<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, double> valueSelector)
-            where TObject :  notnull
-            where TKey :  notnull { }
-        public static System.IObservable<int> Sum<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, int> valueSelector)
-            where TObject :  notnull
-            where TKey :  notnull { }
-        public static System.IObservable<long> Sum<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, long> valueSelector)
-            where TObject :  notnull
-            where TKey :  notnull { }
-        public static System.IObservable<float> Sum<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, float> valueSelector)
-            where TObject :  notnull
-            where TKey :  notnull { }
         public static System.IObservable<decimal> Sum<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, decimal?> valueSelector)
+            where TObject :  notnull
+            where TKey :  notnull { }
+        public static System.IObservable<double> Sum<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, double> valueSelector)
             where TObject :  notnull
             where TKey :  notnull { }
         public static System.IObservable<double> Sum<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, double?> valueSelector)
             where TObject :  notnull
             where TKey :  notnull { }
+        public static System.IObservable<float> Sum<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, float> valueSelector)
+            where TObject :  notnull
+            where TKey :  notnull { }
         public static System.IObservable<float> Sum<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, float?> valueSelector)
             where TObject :  notnull
             where TKey :  notnull { }
+        public static System.IObservable<int> Sum<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, int> valueSelector)
+            where TObject :  notnull
+            where TKey :  notnull { }
         public static System.IObservable<int> Sum<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, int?> valueSelector)
+            where TObject :  notnull
+            where TKey :  notnull { }
+        public static System.IObservable<long> Sum<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, long> valueSelector)
             where TObject :  notnull
             where TKey :  notnull { }
         public static System.IObservable<long> Sum<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, long?> valueSelector)
@@ -279,9 +279,6 @@ namespace DynamicData.Alias
         public static System.IObservable<DynamicData.IChangeSet<TObject, TKey>> Where<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.IObservable<System.Func<TObject, bool>> predicateChanged)
             where TObject :  notnull
             where TKey :  notnull { }
-        public static System.IObservable<DynamicData.IChangeSet<TObject, TKey>> Where<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.IObservable<System.Reactive.Unit> reapplyFilter)
-            where TObject :  notnull
-            where TKey :  notnull { }
         public static System.IObservable<DynamicData.IChangeSet<TObject, TKey>> Where<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.IObservable<System.Func<TObject, bool>> predicateChanged, System.IObservable<System.Reactive.Unit> reapplyFilter)
             where TObject :  notnull
             where TKey :  notnull { }
@@ -309,8 +306,6 @@ namespace DynamicData.Binding
         protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string? propertyName = null) { }
         protected virtual void SetAndRaise<T>(ref T backingField, T newValue, [System.Runtime.CompilerServices.CallerMemberName] string? propertyName = null) { }
         protected virtual void SetAndRaise<T>(ref T backingField, T newValue, System.Collections.Generic.IEqualityComparer<T>? comparer, [System.Runtime.CompilerServices.CallerMemberName] string? propertyName = null) { }
-        [System.Obsolete("This never worked properly in the first place")]
-        public System.IDisposable SuspendNotifications(bool invokePropertyChangeEventWhenDisposed = true) { }
     }
     public class BindingListAdaptor<[System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All)]  T> : DynamicData.IChangeSetAdaptor<T>
         where T :  notnull
@@ -328,12 +323,12 @@ namespace DynamicData.Binding
     public static class BindingListEx
     {
         public static System.IObservable<System.Reactive.EventPattern<System.ComponentModel.ListChangedEventArgs>> ObserveCollectionChanges(this System.ComponentModel.IBindingList source) { }
-        public static System.IObservable<DynamicData.IChangeSet<T>> ToObservableChangeSet<T>(this System.ComponentModel.BindingList<T> source)
+        public static System.IObservable<DynamicData.IChangeSet<T>> ToObservableChangeSet<[System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All)]  T>(this System.ComponentModel.BindingList<T> source)
             where T :  notnull { }
         public static System.IObservable<DynamicData.IChangeSet<T>> ToObservableChangeSet<TCollection, T>(this TCollection source)
             where TCollection : System.ComponentModel.IBindingList, System.Collections.Generic.IEnumerable<T>
             where T :  notnull { }
-        public static System.IObservable<DynamicData.IChangeSet<TObject, TKey>> ToObservableChangeSet<TObject, TKey>(this System.ComponentModel.BindingList<TObject> source, System.Func<TObject, TKey> keySelector)
+        public static System.IObservable<DynamicData.IChangeSet<TObject, TKey>> ToObservableChangeSet<[System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All)]  TObject, TKey>(this System.ComponentModel.BindingList<TObject> source, System.Func<TObject, TKey> keySelector)
             where TObject :  notnull
             where TKey :  notnull { }
     }
@@ -469,7 +464,7 @@ namespace DynamicData.Binding
         public static bool operator !=(DynamicData.Binding.PropertyValue<TObject, TValue>? left, DynamicData.Binding.PropertyValue<TObject, TValue>? right) { }
         public static bool operator ==(DynamicData.Binding.PropertyValue<TObject, TValue>? left, DynamicData.Binding.PropertyValue<TObject, TValue>? right) { }
     }
-    public struct SortAndBindOptions : System.IEquatable<DynamicData.Binding.SortAndBindOptions>
+    public readonly struct SortAndBindOptions : System.IEquatable<DynamicData.Binding.SortAndBindOptions>
     {
         public SortAndBindOptions() { }
         public int InitialCapacity { get; init; }
@@ -600,8 +595,8 @@ namespace DynamicData
         public void Insert(int index, T item) { }
         protected virtual void InsertItem(int index, T item) { }
         public void InsertRange(System.Collections.Generic.IEnumerable<T> collection, int index) { }
-        public virtual void Move(int original, int destination) { }
         public virtual void Move(T item, int destination) { }
+        public virtual void Move(int original, int destination) { }
         protected virtual void OnInsertItems(int startIndex, System.Collections.Generic.IEnumerable<T> items) { }
         protected virtual void OnRemoveItems(int startIndex, System.Collections.Generic.IEnumerable<T> items) { }
         protected virtual void OnSetItem(int index, T newItem, T oldItem) { }
@@ -1137,6 +1132,9 @@ namespace DynamicData
         public static DynamicData.IObservableCache<TObject, TKey> AsObservableCache<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, bool applyLocking = true)
             where TObject :  notnull
             where TKey :  notnull { }
+        public static System.IObservable<DynamicData.IChangeSet<TObject, TKey>> AsyncDisposeMany<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Action<System.IObservable<System.Reactive.Unit>> disposalsCompletedAccessor)
+            where TObject :  notnull
+            where TKey :  notnull { }
         public static System.IObservable<DynamicData.IChangeSet<TObject, TKey>> AutoRefresh<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.TimeSpan? changeSetBuffer = default, System.TimeSpan? propertyChangeThrottle = default, System.Reactive.Concurrency.IScheduler? scheduler = null)
             where TObject : System.ComponentModel.INotifyPropertyChanged
             where TKey :  notnull { }
@@ -1155,10 +1153,10 @@ namespace DynamicData
         public static System.IObservable<DynamicData.IChangeSet<TObject, TKey>> BatchIf<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.IObservable<bool> pauseIfTrueSelector, System.Reactive.Concurrency.IScheduler? scheduler = null)
             where TObject :  notnull
             where TKey :  notnull { }
-        public static System.IObservable<DynamicData.IChangeSet<TObject, TKey>> BatchIf<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.IObservable<bool> pauseIfTrueSelector, bool initialPauseState = false, System.Reactive.Concurrency.IScheduler? scheduler = null)
+        public static System.IObservable<DynamicData.IChangeSet<TObject, TKey>> BatchIf<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.IObservable<bool> pauseIfTrueSelector, System.TimeSpan? timeOut = default, System.Reactive.Concurrency.IScheduler? scheduler = null)
             where TObject :  notnull
             where TKey :  notnull { }
-        public static System.IObservable<DynamicData.IChangeSet<TObject, TKey>> BatchIf<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.IObservable<bool> pauseIfTrueSelector, System.TimeSpan? timeOut = default, System.Reactive.Concurrency.IScheduler? scheduler = null)
+        public static System.IObservable<DynamicData.IChangeSet<TObject, TKey>> BatchIf<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.IObservable<bool> pauseIfTrueSelector, bool initialPauseState = false, System.Reactive.Concurrency.IScheduler? scheduler = null)
             where TObject :  notnull
             where TKey :  notnull { }
         public static System.IObservable<DynamicData.IChangeSet<TObject, TKey>> BatchIf<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.IObservable<bool> pauseIfTrueSelector, bool initialPauseState = false, System.IObservable<System.Reactive.Unit>? timer = null, System.Reactive.Concurrency.IScheduler? scheduler = null)
@@ -1323,9 +1321,6 @@ namespace DynamicData
         public static System.IObservable<DynamicData.IChangeSet<TObject, TKey>> Filter<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.IObservable<System.Func<TObject, bool>> predicateChanged, bool suppressEmptyChangeSets = true)
             where TObject :  notnull
             where TKey :  notnull { }
-        public static System.IObservable<DynamicData.IChangeSet<TObject, TKey>> Filter<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.IObservable<System.Reactive.Unit> reapplyFilter, bool suppressEmptyChangeSets = true)
-            where TObject :  notnull
-            where TKey :  notnull { }
         public static System.IObservable<DynamicData.IChangeSet<TObject, TKey>> Filter<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.IObservable<System.Func<TObject, bool>> predicateChanged, System.IObservable<System.Reactive.Unit> reapplyFilter, bool suppressEmptyChangeSets = true)
             where TObject :  notnull
             where TKey :  notnull { }
@@ -1340,10 +1335,6 @@ namespace DynamicData
             where TKey :  notnull { }
         public static System.IObservable<DynamicData.IChangeSet<TObject, TKey>> FilterOnObservable<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, TKey, System.IObservable<bool>> filterFactory, System.TimeSpan? buffer = default, System.Reactive.Concurrency.IScheduler? scheduler = null)
             where TObject :  notnull
-            where TKey :  notnull { }
-        [System.Obsolete("Use AutoRefresh(), followed by Filter() instead")]
-        public static System.IObservable<DynamicData.IChangeSet<TObject, TKey>> FilterOnProperty<TObject, TKey, TProperty>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Linq.Expressions.Expression<System.Func<TObject, TProperty>> propertySelector, System.Func<TObject, bool> predicate, System.TimeSpan? propertyChangedThrottle = default, System.Reactive.Concurrency.IScheduler? scheduler = null)
-            where TObject : System.ComponentModel.INotifyPropertyChanged
             where TKey :  notnull { }
         [System.Obsolete("This can cause unhandled exception issues so do not use")]
         public static System.IObservable<T> FinallySafe<T>(this System.IObservable<T> source, System.Action finallyAction) { }
@@ -1586,22 +1577,22 @@ namespace DynamicData
             where TKey :  notnull
             where TDestination :  notnull
             where TDestinationKey :  notnull { }
-        public static System.IObservable<DynamicData.IChangeSet<TDestination, TDestinationKey>> MergeManyChangeSets<TObject, TKey, TDestination, TDestinationKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, System.IObservable<DynamicData.IChangeSet<TDestination, TDestinationKey>>> observableSelector, System.Collections.Generic.IComparer<TObject> sourceComparer, bool resortOnSourceRefresh, System.Collections.Generic.IComparer<TDestination> childComparer)
-            where TObject :  notnull
-            where TKey :  notnull
-            where TDestination :  notnull
-            where TDestinationKey :  notnull { }
         public static System.IObservable<DynamicData.IChangeSet<TDestination, TDestinationKey>> MergeManyChangeSets<TObject, TKey, TDestination, TDestinationKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, System.IObservable<DynamicData.IChangeSet<TDestination, TDestinationKey>>> observableSelector, System.Collections.Generic.IComparer<TObject> sourceComparer, System.Collections.Generic.IEqualityComparer<TDestination>? equalityComparer = null, System.Collections.Generic.IComparer<TDestination>? childComparer = null)
             where TObject :  notnull
             where TKey :  notnull
             where TDestination :  notnull
             where TDestinationKey :  notnull { }
-        public static System.IObservable<DynamicData.IChangeSet<TDestination, TDestinationKey>> MergeManyChangeSets<TObject, TKey, TDestination, TDestinationKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, TKey, System.IObservable<DynamicData.IChangeSet<TDestination, TDestinationKey>>> observableSelector, System.Collections.Generic.IComparer<TObject> sourceComparer, bool resortOnSourceRefresh, System.Collections.Generic.IComparer<TDestination> childComparer)
+        public static System.IObservable<DynamicData.IChangeSet<TDestination, TDestinationKey>> MergeManyChangeSets<TObject, TKey, TDestination, TDestinationKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, System.IObservable<DynamicData.IChangeSet<TDestination, TDestinationKey>>> observableSelector, System.Collections.Generic.IComparer<TObject> sourceComparer, bool resortOnSourceRefresh, System.Collections.Generic.IComparer<TDestination> childComparer)
             where TObject :  notnull
             where TKey :  notnull
             where TDestination :  notnull
             where TDestinationKey :  notnull { }
         public static System.IObservable<DynamicData.IChangeSet<TDestination, TDestinationKey>> MergeManyChangeSets<TObject, TKey, TDestination, TDestinationKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, TKey, System.IObservable<DynamicData.IChangeSet<TDestination, TDestinationKey>>> observableSelector, System.Collections.Generic.IComparer<TObject> sourceComparer, System.Collections.Generic.IEqualityComparer<TDestination>? equalityComparer = null, System.Collections.Generic.IComparer<TDestination>? childComparer = null)
+            where TObject :  notnull
+            where TKey :  notnull
+            where TDestination :  notnull
+            where TDestinationKey :  notnull { }
+        public static System.IObservable<DynamicData.IChangeSet<TDestination, TDestinationKey>> MergeManyChangeSets<TObject, TKey, TDestination, TDestinationKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Func<TObject, TKey, System.IObservable<DynamicData.IChangeSet<TDestination, TDestinationKey>>> observableSelector, System.Collections.Generic.IComparer<TObject> sourceComparer, bool resortOnSourceRefresh, System.Collections.Generic.IComparer<TDestination> childComparer)
             where TObject :  notnull
             where TKey :  notnull
             where TDestination :  notnull
@@ -1913,10 +1904,6 @@ namespace DynamicData
         public static System.IObservable<DynamicData.IChangeSet<TObject, TKey, DynamicData.VirtualContext<TObject>>> Top<TObject, TKey>(this System.IObservable<DynamicData.IChangeSet<TObject, TKey>> source, System.Collections.Generic.IComparer<TObject> comparer, int size)
             where TObject :  notnull
             where TKey :  notnull { }
-        public static System.IObservable<DynamicData.IChangeSet<TDestination, TKey>> Transform<TDestination, TSource, TKey>(this System.IObservable<DynamicData.IChangeSet<TSource, TKey>> source, System.Func<TSource, TDestination> transformFactory, bool transformOnRefresh)
-            where TDestination :  notnull
-            where TSource :  notnull
-            where TKey :  notnull { }
         public static System.IObservable<DynamicData.IChangeSet<TDestination, TKey>> Transform<TDestination, TSource, TKey>(this System.IObservable<DynamicData.IChangeSet<TSource, TKey>> source, System.Func<TSource, TDestination> transformFactory, System.IObservable<System.Reactive.Unit> forceTransform)
             where TDestination :  notnull
             where TSource :  notnull
@@ -1925,7 +1912,7 @@ namespace DynamicData
             where TDestination :  notnull
             where TSource :  notnull
             where TKey :  notnull { }
-        public static System.IObservable<DynamicData.IChangeSet<TDestination, TKey>> Transform<TDestination, TSource, TKey>(this System.IObservable<DynamicData.IChangeSet<TSource, TKey>> source, System.Func<TSource, TKey, TDestination> transformFactory, bool transformOnRefresh)
+        public static System.IObservable<DynamicData.IChangeSet<TDestination, TKey>> Transform<TDestination, TSource, TKey>(this System.IObservable<DynamicData.IChangeSet<TSource, TKey>> source, System.Func<TSource, TDestination> transformFactory, bool transformOnRefresh)
             where TDestination :  notnull
             where TSource :  notnull
             where TKey :  notnull { }
@@ -1937,7 +1924,7 @@ namespace DynamicData
             where TDestination :  notnull
             where TSource :  notnull
             where TKey :  notnull { }
-        public static System.IObservable<DynamicData.IChangeSet<TDestination, TKey>> Transform<TDestination, TSource, TKey>(this System.IObservable<DynamicData.IChangeSet<TSource, TKey>> source, System.Func<TSource, DynamicData.Kernel.Optional<TSource>, TKey, TDestination> transformFactory, bool transformOnRefresh)
+        public static System.IObservable<DynamicData.IChangeSet<TDestination, TKey>> Transform<TDestination, TSource, TKey>(this System.IObservable<DynamicData.IChangeSet<TSource, TKey>> source, System.Func<TSource, TKey, TDestination> transformFactory, bool transformOnRefresh)
             where TDestination :  notnull
             where TSource :  notnull
             where TKey :  notnull { }
@@ -1946,6 +1933,10 @@ namespace DynamicData
             where TSource :  notnull
             where TKey :  notnull { }
         public static System.IObservable<DynamicData.IChangeSet<TDestination, TKey>> Transform<TDestination, TSource, TKey>(this System.IObservable<DynamicData.IChangeSet<TSource, TKey>> source, System.Func<TSource, DynamicData.Kernel.Optional<TSource>, TKey, TDestination> transformFactory, System.IObservable<System.Func<TSource, TKey, bool>>? forceTransform = null)
+            where TDestination :  notnull
+            where TSource :  notnull
+            where TKey :  notnull { }
+        public static System.IObservable<DynamicData.IChangeSet<TDestination, TKey>> Transform<TDestination, TSource, TKey>(this System.IObservable<DynamicData.IChangeSet<TSource, TKey>> source, System.Func<TSource, DynamicData.Kernel.Optional<TSource>, TKey, TDestination> transformFactory, bool transformOnRefresh)
             where TDestination :  notnull
             where TSource :  notnull
             where TKey :  notnull { }
@@ -2284,9 +2275,9 @@ namespace DynamicData
             where T :  notnull { }
         public static System.IObservable<DynamicData.IChangeSet<T>> BufferIf<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.IObservable<bool> pauseIfTrueSelector, System.Reactive.Concurrency.IScheduler? scheduler = null)
             where T :  notnull { }
-        public static System.IObservable<DynamicData.IChangeSet<T>> BufferIf<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.IObservable<bool> pauseIfTrueSelector, bool initialPauseState, System.Reactive.Concurrency.IScheduler? scheduler = null)
-            where T :  notnull { }
         public static System.IObservable<DynamicData.IChangeSet<T>> BufferIf<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.IObservable<bool> pauseIfTrueSelector, System.TimeSpan? timeOut, System.Reactive.Concurrency.IScheduler? scheduler = null)
+            where T :  notnull { }
+        public static System.IObservable<DynamicData.IChangeSet<T>> BufferIf<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.IObservable<bool> pauseIfTrueSelector, bool initialPauseState, System.Reactive.Concurrency.IScheduler? scheduler = null)
             where T :  notnull { }
         public static System.IObservable<DynamicData.IChangeSet<T>> BufferIf<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.IObservable<bool> pauseIfTrueSelector, bool initialPauseState, System.TimeSpan? timeOut, System.Reactive.Concurrency.IScheduler? scheduler = null)
             where T :  notnull { }
@@ -2346,6 +2337,9 @@ namespace DynamicData
         public static System.IObservable<DynamicData.IChangeSet<DynamicData.IGroup<TObject, TGroup>>> GroupOn<TObject, TGroup>(this System.IObservable<DynamicData.IChangeSet<TObject>> source, System.Func<TObject, TGroup> groupSelector, System.IObservable<System.Reactive.Unit>? regrouper = null)
             where TObject :  notnull
             where TGroup :  notnull { }
+        public static System.IObservable<DynamicData.IChangeSet<DynamicData.IGroup<TObject, TGroupKey>>> GroupOnObservable<TObject, TGroupKey>(this System.IObservable<DynamicData.IChangeSet<TObject>> source, System.Func<TObject, System.IObservable<TGroupKey>> groupKeySelector)
+            where TObject :  notnull
+            where TGroupKey :  notnull { }
         public static System.IObservable<DynamicData.IChangeSet<DynamicData.IGroup<TObject, TGroup>>> GroupOnProperty<TObject, TGroup>(this System.IObservable<DynamicData.IChangeSet<TObject>> source, System.Linq.Expressions.Expression<System.Func<TObject, TGroup>> propertySelector, System.TimeSpan? propertyChangedThrottle = default, System.Reactive.Concurrency.IScheduler? scheduler = null)
             where TObject : System.ComponentModel.INotifyPropertyChanged
             where TGroup :  notnull { }
@@ -2394,12 +2388,21 @@ namespace DynamicData
             where TObject :  notnull
             where TDestination :  notnull
             where TDestinationKey :  notnull { }
+        public static System.IObservable<DynamicData.IChangeSet<TDestination, TDestinationKey>> MergeManyChangeSets<TObject, TDestination, TDestinationKey>(this System.IObservable<DynamicData.IChangeSet<TObject>> source, System.Func<TObject, System.IObservable<DynamicData.IChangeSet<TDestination, TDestinationKey>>> observableSelector, System.Collections.Generic.IComparer<TObject> parentComparer, System.Collections.Generic.IEqualityComparer<TDestination>? equalityComparer = null, System.Collections.Generic.IComparer<TDestination>? childComparer = null)
+            where TObject :  notnull
+            where TDestination :  notnull
+            where TDestinationKey :  notnull { }
+        public static System.IObservable<DynamicData.Kernel.ItemWithValue<TObject, TDestination>> MergeManyItems<TObject, TDestination>(this System.IObservable<DynamicData.IChangeSet<TObject>> source, System.Func<TObject, System.IObservable<TDestination>> observableSelector)
+            where TObject :  notnull { }
         public static System.IObservable<DynamicData.IChangeSet<T>> NotEmpty<T>(this System.IObservable<DynamicData.IChangeSet<T>> source)
             where T :  notnull { }
+        public static System.IObservable<DynamicData.IChangeSet<TDestination>> OfType<TObject, TDestination>(this System.IObservable<DynamicData.IChangeSet<TObject>> source)
+            where TObject :  notnull
+            where TDestination :  notnull { }
         public static System.IObservable<DynamicData.IChangeSet<T>> OnItemAdded<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Action<T> addAction)
             where T :  notnull { }
-        public static System.IObservable<DynamicData.IChangeSet<TObject>> OnItemRefreshed<TObject>(this System.IObservable<DynamicData.IChangeSet<TObject>> source, System.Action<TObject> refreshAction)
-            where TObject :  notnull { }
+        public static System.IObservable<DynamicData.IChangeSet<T>> OnItemRefreshed<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Action<T> refreshAction)
+            where T :  notnull { }
         public static System.IObservable<DynamicData.IChangeSet<T>> OnItemRemoved<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.Action<T> removeAction, bool invokeOnUnsubscribe = true)
             where T :  notnull { }
         public static System.IObservable<DynamicData.IChangeSet<T>> Or<T>(this DynamicData.IObservableList<DynamicData.IObservableList<T>> sources)
@@ -2502,6 +2505,18 @@ namespace DynamicData
         public static System.IObservable<DynamicData.IChangeSet<TDestination>> TransformMany<TDestination, TSource>(this System.IObservable<DynamicData.IChangeSet<TSource>> source, System.Func<TSource, System.Collections.ObjectModel.ReadOnlyObservableCollection<TDestination>> manySelector, System.Collections.Generic.IEqualityComparer<TDestination>? equalityComparer = null)
             where TDestination :  notnull
             where TSource :  notnull { }
+        public static System.IObservable<DynamicData.IChangeSet<TDestination>> TransformManyAsync<TSource, TDestination>(this System.IObservable<DynamicData.IChangeSet<TSource>> source, System.Func<TSource, System.Threading.Tasks.Task<System.IObservable<DynamicData.IChangeSet<TDestination>>>> transformer, System.Collections.Generic.IEqualityComparer<TDestination>? equalityComparer = null)
+            where TSource :  notnull
+            where TDestination :  notnull { }
+        public static System.IObservable<DynamicData.IChangeSet<TDestination>> TransformOnObservable<TSource, TDestination>(this System.IObservable<DynamicData.IChangeSet<TSource>> source, System.Func<TSource, System.IObservable<TDestination>> transformFactory)
+            where TSource :  notnull
+            where TDestination :  notnull { }
+        public static System.IObservable<bool> TrueForAll<TObject, TValue>(this System.IObservable<DynamicData.IChangeSet<TObject>> source, System.Func<TObject, System.IObservable<TValue>> observableSelector, System.Func<TValue, bool> equalityCondition)
+            where TObject :  notnull
+            where TValue :  notnull { }
+        public static System.IObservable<bool> TrueForAny<TObject, TValue>(this System.IObservable<DynamicData.IChangeSet<TObject>> source, System.Func<TObject, System.IObservable<TValue>> observableSelector, System.Func<TValue, bool> equalityCondition)
+            where TObject :  notnull
+            where TValue :  notnull { }
         public static System.IObservable<DynamicData.IVirtualChangeSet<T>> Virtualise<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, System.IObservable<DynamicData.IVirtualRequest> requests)
             where T :  notnull { }
         public static System.IObservable<TObject?> WhenAnyPropertyChanged<TObject>(this System.IObservable<DynamicData.IChangeSet<TObject>> source, params string[] propertiesToMonitor)
@@ -2525,7 +2540,6 @@ namespace DynamicData
         public static System.IObservable<DynamicData.IChangeSet<T>> Xor<T>(this System.IObservable<DynamicData.IChangeSet<T>> source, params System.IObservable<DynamicData.IChangeSet<T>>[] others)
             where T :  notnull { }
     }
-    public static class ObsoleteEx { }
     public class PageContext<TObject> : System.IEquatable<DynamicData.PageContext<TObject>>
     {
         public PageContext(DynamicData.Operators.IPageResponse Response, System.Collections.Generic.IComparer<TObject> Comparer, DynamicData.SortAndPageOptions Options) { }
@@ -2836,34 +2850,34 @@ namespace DynamicData.Kernel
     }
     public static class OptionExtensions
     {
-        public static DynamicData.Kernel.Optional<TDestination> Convert<TSource, TDestination>(in this DynamicData.Kernel.Optional<TSource> source, System.Func<TSource, DynamicData.Kernel.Optional<TDestination>> converter)
+        public static DynamicData.Kernel.Optional<TDestination> Convert<TSource, TDestination>(this in DynamicData.Kernel.Optional<TSource> source, System.Func<TSource, DynamicData.Kernel.Optional<TDestination>> converter)
             where TSource :  notnull
             where TDestination :  notnull { }
-        public static DynamicData.Kernel.Optional<TDestination> Convert<TSource, TDestination>(in this DynamicData.Kernel.Optional<TSource> source, System.Func<TSource, TDestination> converter)
+        public static DynamicData.Kernel.Optional<TDestination> Convert<TSource, TDestination>(this in DynamicData.Kernel.Optional<TSource> source, System.Func<TSource, TDestination> converter)
             where TSource :  notnull
             where TDestination :  notnull { }
-        public static TDestination? ConvertOr<TSource, TDestination>(in this DynamicData.Kernel.Optional<TSource> source, System.Func<TSource?, TDestination?> converter, System.Func<TDestination?> fallbackConverter)
+        public static TDestination? ConvertOr<TSource, TDestination>(this in DynamicData.Kernel.Optional<TSource> source, System.Func<TSource?, TDestination?> converter, System.Func<TDestination?> fallbackConverter)
             where TSource :  notnull { }
         public static DynamicData.Kernel.Optional<T> FirstOrOptional<T>(this System.Collections.Generic.IEnumerable<T> source, System.Func<T, bool> selector)
             where T :  notnull { }
-        public static DynamicData.Kernel.OptionElse IfHasValue<T>(in this DynamicData.Kernel.Optional<T> source, System.Action<T> action)
-            where T :  notnull { }
         public static DynamicData.Kernel.OptionElse IfHasValue<T>(this DynamicData.Kernel.Optional<T>? source, System.Action<T> action)
+            where T :  notnull { }
+        public static DynamicData.Kernel.OptionElse IfHasValue<T>(this in DynamicData.Kernel.Optional<T> source, System.Action<T> action)
             where T :  notnull { }
         public static DynamicData.Kernel.Optional<TValue> Lookup<TValue, TKey>(this System.Collections.Generic.IDictionary<TKey, TValue> source, TKey key)
             where TValue :  notnull { }
-        public static DynamicData.Kernel.Optional<T> OrElse<T>(in this DynamicData.Kernel.Optional<T> source, System.Func<DynamicData.Kernel.Optional<T>> fallbackOperation)
+        public static DynamicData.Kernel.Optional<T> OrElse<T>(this in DynamicData.Kernel.Optional<T> source, System.Func<DynamicData.Kernel.Optional<T>> fallbackOperation)
             where T :  notnull { }
         public static bool RemoveIfContained<TValue, TKey>(this System.Collections.Generic.IDictionary<TKey, TValue> source, TKey key) { }
         public static System.Collections.Generic.IEnumerable<T> SelectValues<T>(this System.Collections.Generic.IEnumerable<DynamicData.Kernel.Optional<T>> source)
             where T :  notnull { }
-        public static T ValueOr<T>(in this DynamicData.Kernel.Optional<T> source, System.Func<T> valueSelector)
-            where T :  notnull { }
         public static T ValueOr<T>(this T? source, T defaultValue)
             where T :  struct { }
-        public static T? ValueOrDefault<T>(in this DynamicData.Kernel.Optional<T> source)
+        public static T ValueOr<T>(this in DynamicData.Kernel.Optional<T> source, System.Func<T> valueSelector)
             where T :  notnull { }
-        public static T ValueOrThrow<T>(in this DynamicData.Kernel.Optional<T> source, System.Func<System.Exception> exceptionGenerator)
+        public static T? ValueOrDefault<T>(this in DynamicData.Kernel.Optional<T> source)
+            where T :  notnull { }
+        public static T ValueOrThrow<T>(this in DynamicData.Kernel.Optional<T> source, System.Func<System.Exception> exceptionGenerator)
             where T :  notnull { }
     }
     public static class OptionObservableExtensions

@@ -4,6 +4,8 @@
 
 using System.Reactive.Linq;
 
+using DynamicData.Internal;
+
 namespace DynamicData.Cache.Internal;
 
 internal sealed class EditDiffChangeSetOptional<TObject, TKey>(IObservable<Optional<TObject>> source, Func<TObject, TKey> keySelector, IEqualityComparer<TObject>? equalityComparer)
@@ -20,7 +22,7 @@ internal sealed class EditDiffChangeSetOptional<TObject, TKey>(IObservable<Optio
                                                                 {
                                                                     var previous = Optional.None<ValueContainer>();
 
-                                                                    return _source.Synchronize().Subscribe(
+                                                                    return _source.SynchronizeSafe().Subscribe(
                                                                         nextValue =>
                                                                         {
                                                                             var current = nextValue.Convert(val => new ValueContainer(val, _keySelector(val)));
