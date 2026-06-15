@@ -143,4 +143,37 @@ public static partial class ObservableListEx
 
         return new MergeManyCacheChangeSets<TObject, TDestination, TDestinationKey>(source, observableSelector, equalityComparer, comparer).Run();
     }
+
+    /// <summary>
+    /// Transforms each source item into a child cache changeset stream and merges all children
+    /// into a single cache changeset stream. When the same destination key appears in multiple
+    /// children's output, the parent comparer picks the winning parent.
+    /// </summary>
+    /// <typeparam name="TObject">The type of items in the source list.</typeparam>
+    /// <typeparam name="TDestination">The type of items in the child cache changeset streams.</typeparam>
+    /// <typeparam name="TDestinationKey">The type of the key in the child cache changesets.</typeparam>
+    /// <param name="source">The source list changeset.</param>
+    /// <param name="observableSelector">A function that returns a child cache changeset stream for each source item.</param>
+    /// <param name="parentComparer">A <see cref="IComparer{TObject}"/> used to determine which parent's value wins when the same destination key appears in multiple children. Returns negative for higher-priority parents.</param>
+    /// <param name="equalityComparer">An optional <see cref="IEqualityComparer{TDestination}"/> applied to child values.</param>
+    /// <param name="childComparer">An optional <see cref="IComparer{TDestination}"/> used as a secondary tiebreaker when parents compare equal.</param>
+    /// <returns>A single cache changeset stream with parent-priority deduplication.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="source"/>, <paramref name="observableSelector"/>, or <paramref name="parentComparer"/> is <see langword="null"/>.</exception>
+    public static IObservable<IChangeSet<TDestination, TDestinationKey>> MergeManyChangeSets<TObject, TDestination, TDestinationKey>(
+        this IObservable<IChangeSet<TObject>> source,
+        Func<TObject, IObservable<IChangeSet<TDestination, TDestinationKey>>> observableSelector,
+        IComparer<TObject> parentComparer,
+        IEqualityComparer<TDestination>? equalityComparer = null,
+        IComparer<TDestination>? childComparer = null)
+        where TObject : notnull
+        where TDestination : notnull
+        where TDestinationKey : notnull
+    {
+        source.ThrowArgumentNullExceptionIfNull(nameof(source));
+        observableSelector.ThrowArgumentNullExceptionIfNull(nameof(observableSelector));
+        parentComparer.ThrowArgumentNullExceptionIfNull(nameof(parentComparer));
+
+        return new MergeManyCacheChangeSetsSourceCompare<TObject, TDestination, TDestinationKey>(
+            source, observableSelector, parentComparer, equalityComparer, childComparer).Run();
+    }
 }
