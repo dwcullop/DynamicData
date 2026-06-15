@@ -14,33 +14,43 @@ internal sealed class FilterOnObservable<TObject>(IObservable<IChangeSet<TObject
     private readonly Func<TObject, IObservable<bool>> _filter = filter ?? throw new ArgumentNullException(nameof(filter));
     private readonly IObservable<IChangeSet<TObject>> _source = source ?? throw new ArgumentNullException(nameof(source));
 
-    public IObservable<IChangeSet<TObject>> Run() => Observable.Create<IChangeSet<TObject>>(
+    public IObservable<IChangeSet<TObject>> Run() =>
+        buffer is null
+            ? RunOrchestrated()
+            : RunBuffered();
+
+    private IObservable<IChangeSet<TObject>> RunOrchestrated() =>
+        _source
+            .Orchestrate<TObject, bool, IChangeSet<ObjWithFilterValue<TObject>>>(
+                (ctx, _) => new FilterOnObservableOrchestrator<TObject>(_filter))
+            .Filter(v => v.Filter)
+            .Transform(v => v.Obj)
+            .SuppressRefresh()
+            .NotEmpty();
+
+    private IObservable<IChangeSet<TObject>> RunBuffered() => Observable.Create<IChangeSet<TObject>>(
             observer =>
             {
                 var locker = InternalEx.NewLock();
 
-                var allItems = new List<ObjWithFilterValue>();
+                var allItems = new List<ObjWithFilterValue<TObject>>();
 
-                var shared = _source.Synchronize(locker).Transform(v => new ObjWithFilterValue(v, true)) // we default to true (include all items)
-                    .Clone(allItems) // clone all items so we can look up the index when a change has been made
+                var shared = _source.Synchronize(locker).Transform(v => new ObjWithFilterValue<TObject>(v, true))
+                    .Clone(allItems)
                     .Publish();
 
-                // monitor each item observable and create change, carry the value of the observable property
-                var itemHasChanged = shared.MergeMany(v => _filter(v.Obj).Select(prop => new ObjWithFilterValue(v.Obj, prop)));
+                var itemHasChanged = shared.MergeMany(v => _filter(v.Obj).Select(prop => new ObjWithFilterValue<TObject>(v.Obj, prop)));
 
-                // create a change set, either buffered or one item at the time
-                var itemsChanged = buffer is null ?
-                    itemHasChanged.Select(t => new[] { t }) :
-                    itemHasChanged.Buffer(buffer.Value, scheduler ?? GlobalConfig.DefaultScheduler).Where(list => list.Count > 0);
+                IObservable<IEnumerable<ObjWithFilterValue<TObject>>> itemsChanged =
+                    itemHasChanged.Buffer(buffer!.Value, scheduler ?? GlobalConfig.DefaultScheduler).Where(list => list.Count > 0);
 
                 var requiresRefresh = itemsChanged.Synchronize(locker).Select(
-                    items => // catch all the indices of items which have been refreshed
-                        IndexOfMany(allItems, items, v => v.Obj, (t, idx) => new Change<ObjWithFilterValue>(ListChangeReason.Refresh, t, idx))).Select(changes => new ChangeSet<ObjWithFilterValue>(changes));
+                    items =>
+                        IndexOfMany(allItems, items, v => v.Obj, (t, idx) => new Change<ObjWithFilterValue<TObject>>(ListChangeReason.Refresh, t, idx))).Select(changes => new ChangeSet<ObjWithFilterValue<TObject>>(changes));
 
-                // publish refreshes and underlying changes
                 var publisher = shared.Merge(requiresRefresh).Filter(v => v.Filter)
                     .Transform(v => v.Obj)
-                    .SuppressRefresh() // suppress refreshes from filter, avoids excessive refresh messages for no-op filter updates
+                    .SuppressRefresh()
                     .NotEmpty()
                     .SubscribeSafe(observer);
 
@@ -55,34 +65,5 @@ internal sealed class FilterOnObservable<TObject>(IObservable<IChangeSet<TObject
 
         var indexed = source.Select((element, index) => new { Element = element, Index = index });
         return itemsToFind.Join(indexed, objectPropertyFunc, right => objectPropertyFunc(right.Element), (left, right) => resultSelector(left, right.Index));
-    }
-
-    private readonly struct ObjWithFilterValue(TObject obj, bool filter) : IEquatable<ObjWithFilterValue>
-    {
-        public readonly TObject Obj = obj;
-
-        public readonly bool Filter = filter;
-
-        private static IEqualityComparer<ObjWithFilterValue> ObjComparer { get; } = new ObjEqualityComparer();
-
-        public bool Equals(ObjWithFilterValue other) =>
-            ObjComparer.Equals(this, other); // default equality does _not_ include Filter value, as that would cause the Filter operator that is used later to fail
-
-        public override bool Equals(object? obj) => obj is ObjWithFilterValue value && Equals(value);
-
-        public override int GetHashCode() => ObjComparer.GetHashCode(this);
-
-        private sealed class ObjEqualityComparer : IEqualityComparer<ObjWithFilterValue>
-        {
-            public bool Equals(ObjWithFilterValue x, ObjWithFilterValue y) => EqualityComparer<TObject>.Default.Equals(x.Obj, y.Obj);
-
-            public int GetHashCode(ObjWithFilterValue obj)
-            {
-                unchecked
-                {
-                    return (obj.Obj is null ? 0 : EqualityComparer<TObject>.Default.GetHashCode(obj.Obj)) * 397;
-                }
-            }
-        }
     }
 }
