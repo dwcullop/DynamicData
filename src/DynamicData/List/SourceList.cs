@@ -200,43 +200,14 @@ public sealed class SourceList<T> : ISourceList<T>
 
     private void NotifyCompleted()
     {
-        using (var notifications = _notifications.AcquireLock())
-        {
-            notifications.EnqueueCompleted();
-        }
-
-        WaitForQueueTermination();
+        using var notifications = _notifications.AcquireLock();
+        notifications.EnqueueCompleted();
     }
 
     private void NotifyError(Exception exception)
     {
-        using (var notifications = _notifications.AcquireLock())
-        {
-            notifications.EnqueueError(exception);
-        }
-
-        WaitForQueueTermination();
-    }
-
-    /// <summary>
-    /// Spin-waits until the terminal notification (OnCompleted/OnError) has been delivered.
-    /// This preserves the legacy contract that <c>Dispose</c> and source completion
-    /// synchronously drain pending notifications before returning. Safely no-ops when the
-    /// calling thread is itself the drain thread (e.g., a subscriber callback that triggers
-    /// disposal): the terminal item will be delivered on stack unwind.
-    /// </summary>
-    private void WaitForQueueTermination()
-    {
-        if (_notifications.IsCurrentThreadDraining)
-        {
-            return;
-        }
-
-        SpinWait spinner = default;
-        while (!_notifications.IsTerminated)
-        {
-            spinner.SpinOnce();
-        }
+        using var notifications = _notifications.AcquireLock();
+        notifications.EnqueueError(exception);
     }
 
     private readonly record struct ListUpdate(IChangeSet<T> Changes, int Count, long Version);
