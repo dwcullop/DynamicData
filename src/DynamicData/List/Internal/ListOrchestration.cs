@@ -22,6 +22,7 @@ internal sealed class ListOrchestration<TSource, TInner, TResult>
     private readonly SharedDeliveryQueue _queue;
     private readonly Dictionary<IListSlot<TSource>, IDisposable> _innerSubscriptions = new();
     private readonly CompositeDisposable _disposables = new();
+    private readonly System.Reactive.Subjects.Subject<Action> _deferredActions = new();
 
     private IListOrchestrator<TSource, TInner, TResult>? _orchestrator;
     private int _subscriptionCount;
@@ -41,6 +42,23 @@ internal sealed class ListOrchestration<TSource, TInner, TResult>
         try
         {
             _queue = new SharedDeliveryQueue(onDrainComplete: OnDrainComplete);
+
+            // Subscribe the deferred-action stream EARLY through the queue. This gives it a
+            // low index in the SharedDeliveryQueue's sub-queue list. Because the SDQ drains
+            // higher-index sub-queues first (LIFO), deferred actions fire AFTER any inner
+            // subscriptions that are added later via Track.
+            _disposables.Add(_deferredActions.SynchronizeSafe(_queue).Subscribe(
+                onNext: action =>
+                {
+                    try
+                    {
+                        action();
+                    }
+                    catch (Exception ex)
+                    {
+                        _downstream.OnError(ex);
+                    }
+                }));
 
             _orchestrator = orchestratorFactory(this, _downstream);
 
@@ -109,6 +127,13 @@ internal sealed class ListOrchestration<TSource, TInner, TResult>
         return observable.SynchronizeSafe(_queue);
     }
 
+    public void DeferAction(Action action)
+    {
+        action.ThrowArgumentNullExceptionIfNull(nameof(action));
+        if (_isDisposed) return;
+        _deferredActions.OnNext(action);
+    }
+
     public void Dispose()
     {
         if (_isDisposed) return;
@@ -117,6 +142,7 @@ internal sealed class ListOrchestration<TSource, TInner, TResult>
         foreach (var sub in _innerSubscriptions.Values) sub.Dispose();
         _innerSubscriptions.Clear();
         _disposables.Dispose();
+        _deferredActions.Dispose();
         _queue.Dispose();
     }
 

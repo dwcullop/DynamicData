@@ -39,4 +39,12 @@ internal interface IListOrchestratorContext<TSource, TInner>
     /// <param name="observable">The observable to wrap.</param>
     /// <returns>An observable that delivers through the shared queue.</returns>
     IObservable<T> Serialize<T>(IObservable<T> observable);
+
+    /// <summary>
+    /// Defers an action to fire after any inner emissions that were enqueued during the current
+    /// callback finish draining. Useful when an orchestrator needs to do cleanup AFTER a newly
+    /// tracked observable has delivered its initial state (e.g. Replace semantics).
+    /// </summary>
+    /// <param name="action">The action to defer.</param>
+    void DeferAction(Action action);
 }
