@@ -37,15 +37,23 @@ internal sealed class MergeManyCacheChangeSetsSourceCompare<TObject, TDestinatio
                     selector: obj => _selector(obj).Transform(child => new ParentChildEntry(obj, child)),
                     equalityComparer: BuildEqualityComparer(),
                     comparer: BuildComparer()))
-            .TransformImmutable(entry => entry.Child);
+            // Use Transform (not TransformImmutable) so Refresh changes propagate from the
+            // underlying ChangeSetMergeTracker through to the consumer. TransformImmutable
+            // drops Refresh because immutable items are presumed not to change; for this
+            // wrapper, however, the destination is mutable and Refresh is meaningful.
+            .Transform(entry => entry.Child);
 
     private IComparer<ParentChildEntry> BuildComparer() =>
         _childCompare is null
             ? new ParentOnlyCompare(_parentCompare)
             : new ParentChildCompare(_parentCompare, _childCompare);
 
-    private IEqualityComparer<ParentChildEntry>? BuildEqualityComparer() =>
-        _equalityComparer is null ? null : new ParentChildEqualityCompare(_equalityComparer);
+    // Always return a non-null equality comparer so the merge tracker can deduplicate by the
+    // child's value-equality. Without this, the tracker falls back to reference equality on
+    // ParentChildEntry, and a fresh wrapper allocated per emission is always 'not equal',
+    // turning identical re-emissions into spurious update notifications.
+    private IEqualityComparer<ParentChildEntry> BuildEqualityComparer() =>
+        new ParentChildEqualityCompare(_equalityComparer ?? EqualityComparer<TDestination>.Default);
 
     internal sealed class ParentChildEntry(TObject parent, TDestination child)
     {

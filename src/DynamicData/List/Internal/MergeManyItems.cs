@@ -50,5 +50,13 @@ internal sealed class MergeManyItems<TObject, TDestination>(IObservable<IChangeS
                     }
                 }
             },
-            onInner: (value, slot, emitter) => emitter.OnNext(new ItemWithValue<TObject, TDestination>(slot.Item, value)));
+            onInner: (value, slot, emitter) =>
+            {
+                // Guard against zombie emissions: an inner observable may have a queued
+                // emission that drains after the slot has already been untracked (e.g.,
+                // source removed the item but the inner was mid-flight). Skip in that case
+                // so we don't emit a value for an item the caller has already seen removed.
+                if (slot.IsReleased) return;
+                emitter.OnNext(new ItemWithValue<TObject, TDestination>(slot.Item, value));
+            });
 }

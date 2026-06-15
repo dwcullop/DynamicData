@@ -2,6 +2,8 @@
 // Roland Pheasant licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
+using System.Reactive.Linq;
+
 namespace DynamicData.List.Internal;
 
 /// <summary>
@@ -33,7 +35,7 @@ internal sealed class TransformOnObservableOrchestrator<TSource, TDestination>
                     var wrapper = new TransformedValue<TSource, TDestination>(slot.Item, Optional<TDestination>.None);
                     _slotToValue[slot] = wrapper;
                     _pending.Add(new Change<TransformedValue<TSource, TDestination>>(ListChangeReason.Add, wrapper, slot.CurrentIndex));
-                    context.Track(slot, _transform(slot.Item));
+                    context.Track(slot, _transform(slot.Item).DistinctUntilChanged());
                     break;
                 }
 
@@ -51,7 +53,7 @@ internal sealed class TransformOnObservableOrchestrator<TSource, TDestination>
 
                     foreach (var slot in change.Range)
                     {
-                        context.Track(slot, _transform(slot.Item));
+                        context.Track(slot, _transform(slot.Item).DistinctUntilChanged());
                     }
 
                     break;
@@ -75,7 +77,7 @@ internal sealed class TransformOnObservableOrchestrator<TSource, TDestination>
                         change.Item.PreviousIndex));
 
                     context.Untrack(oldSlot);
-                    context.Track(newSlot, _transform(newSlot.Item));
+                    context.Track(newSlot, _transform(newSlot.Item).DistinctUntilChanged());
                     break;
                 }
 

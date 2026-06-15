@@ -2,6 +2,8 @@
 // Roland Pheasant licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
+using System.Reactive.Linq;
+
 namespace DynamicData.List.Internal;
 
 internal sealed class TransformOnObservable<TSource, TDestination>(IObservable<IChangeSet<TSource>> source, Func<TSource, IObservable<TDestination>> transform)
@@ -17,6 +19,5 @@ internal sealed class TransformOnObservable<TSource, TDestination>(IObservable<I
                 (ctx, _) => new TransformOnObservableOrchestrator<TSource, TDestination>(_transform))
             .Filter(v => v.HasValue)
             .Transform(v => v.Value.Value)
-            .SuppressRefresh()
             .NotEmpty();
 }

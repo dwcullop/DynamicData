@@ -18,7 +18,15 @@ internal sealed class TransformManyAsyncOrchestrator<TSource, TDestination>
     private readonly Func<TSource, Task<IObservable<IChangeSet<TDestination>>>> _transformer;
     private readonly IEqualityComparer<TDestination>? _equalityComparer;
     private readonly ChangeSetMergeTracker<TDestination> _tracker = new();
-    private readonly Dictionary<IListSlot<TSource>, ClonedListChangeSet<TDestination>> _clones = new();
+
+    // Per-slot list state, mutated only inside OnInner (drain thread). Previously this was
+    // delegated to ClonedListChangeSet.Source which applied .Do(List.Clone) to the raw async
+    // child observable BEFORE the orchestrator serialized it through the SDQ. List mutation
+    // then ran on whatever thread the inner emission arrived on, while UntrackSlot read the
+    // same list from the drain thread - a real race. Owning the list state here moves all
+    // mutation to the drain thread.
+    private readonly Dictionary<IListSlot<TSource>, ChangeAwareList<TDestination>> _slotLists = new();
+
     private bool _pendingChanges;
 
     public TransformManyAsyncOrchestrator(
@@ -70,6 +78,25 @@ internal sealed class TransformManyAsyncOrchestrator<TSource, TDestination>
 
     public void OnInner(IChangeSet<TDestination> value, IListSlot<TSource> slot, IObserver<IChangeSet<TDestination>> emitter)
     {
+        // Guard against zombie emissions arriving on the drain thread after the slot has
+        // been untracked (concurrent source-Remove with an in-flight inner emission).
+        if (slot.IsReleased) return;
+
+        if (!_slotLists.TryGetValue(slot, out var list))
+        {
+            list = new ChangeAwareList<TDestination>();
+            _slotLists[slot] = list;
+        }
+
+        if (_equalityComparer is null)
+        {
+            list.Clone(value);
+        }
+        else
+        {
+            list.Clone(value, _equalityComparer);
+        }
+
         _tracker.ProcessChangeSet(value);
         _pendingChanges = true;
     }
@@ -87,19 +114,17 @@ internal sealed class TransformManyAsyncOrchestrator<TSource, TDestination>
         // The transformer returns a Task<IObservable>; FromAsync awaits the task on subscribe,
         // then SelectMany unwraps the returned observable to deliver its emissions to OnInner.
         var asyncChild = Observable.FromAsync(() => _transformer(slot.Item)).SelectMany(obs => obs);
-        var clone = new ClonedListChangeSet<TDestination>(asyncChild, _equalityComparer);
-        _clones[slot] = clone;
-        context.Track(slot, clone.Source);
+        context.Track(slot, asyncChild);
     }
 
     private void UntrackSlot(IListSlot<TSource> slot, IListOrchestratorContext<TSource, IChangeSet<TDestination>> context)
     {
         context.Untrack(slot);
 
-        if (_clones.TryGetValue(slot, out var clone))
+        if (_slotLists.TryGetValue(slot, out var list))
         {
-            _tracker.RemoveItems(clone.List);
-            _clones.Remove(slot);
+            _tracker.RemoveItems(list);
+            _slotLists.Remove(slot);
             _pendingChanges = true;
         }
     }

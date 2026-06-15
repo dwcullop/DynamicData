@@ -14,7 +14,11 @@ internal sealed class TrueFor<T, TValue>(IObservable<IChangeSet<T>> source, Func
     private readonly Func<T, IObservable<TValue>> _observableSelector = observableSelector ?? throw new ArgumentNullException(nameof(observableSelector));
     private readonly Func<IEnumerable<ItemWithLatest<T, TValue>>, bool> _collectionMatcher = collectionMatcher ?? throw new ArgumentNullException(nameof(collectionMatcher));
 
-    public IObservable<bool> Run()
+    // Wrap state allocation in Defer so perSlot is created fresh per subscription. Without this,
+    // multiple concurrent subscriptions to the returned observable would share the same
+    // dictionary, contaminating each others' aggregate calculation and leaking slots across
+    // subscription lifetimes (re-subscribing after dispose would inherit the prior state).
+    public IObservable<bool> Run() => Observable.Defer(() =>
     {
         var perSlot = new Dictionary<IListSlot<T>, ItemWithLatest<T, TValue>>();
 
@@ -66,5 +70,5 @@ internal sealed class TrueFor<T, TValue>(IObservable<IChangeSet<T>> source, Func
             ctx.Untrack(slot);
             perSlot.Remove(slot);
         }
-    }
+    });
 }

@@ -11,7 +11,7 @@ namespace DynamicData.List.Internal;
 /// TGroupKey}"/> values.
 /// </summary>
 internal sealed class GroupOnObservableOrchestrator<TObject, TGroupKey>
-    : IListOrchestrator<TObject, TGroupKey, IChangeSet<IGroup<TObject, TGroupKey>>>
+    : IListOrchestrator<TObject, TGroupKey, IChangeSet<IGroup<TObject, TGroupKey>>>, IDisposable
     where TObject : notnull
     where TGroupKey : notnull
 {
@@ -62,6 +62,27 @@ internal sealed class GroupOnObservableOrchestrator<TObject, TGroupKey>
                     }
 
                     break;
+
+                case ListChangeReason.Refresh:
+                {
+                    // Propagate the refresh to the group containing this slot's item. Matches
+                    // the cache analog's behaviour where source Refresh is forwarded to the
+                    // group's internal list so downstream consumers see the property change.
+                    var slot = change.Item.Current;
+                    if (_slotToGroupKey.TryGetValue(slot, out var key) &&
+                        _groupsByKey.TryGetValue(key, out var group))
+                    {
+                        group.Edit(list =>
+                        {
+                            if (list is ChangeAwareList<TObject> awareList)
+                            {
+                                awareList.Refresh(slot.Item);
+                            }
+                        });
+                    }
+
+                    break;
+                }
             }
         }
     }
@@ -93,6 +114,22 @@ internal sealed class GroupOnObservableOrchestrator<TObject, TGroupKey>
         {
             emitter.OnNext(groupChanges);
         }
+    }
+
+    /// <summary>
+    /// Dispose all live groups when the orchestration is torn down. Without this, groups
+    /// remaining at completion/dispose time keep their internal SourceList&lt;T&gt; instances
+    /// alive (and their internal Subject subscribers), which masks bugs and leaks resources.
+    /// </summary>
+    public void Dispose()
+    {
+        foreach (var group in _groupsByKey.Values)
+        {
+            group.Dispose();
+        }
+
+        _groupsByKey.Clear();
+        _slotToGroupKey.Clear();
     }
 
     private void StartTracking(IListSlot<TObject> slot, IListOrchestratorContext<TObject, TGroupKey> context) =>
