@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for full license information.
 
 using System.Diagnostics;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -113,9 +114,13 @@ internal sealed class ObservableCache<TObject, TKey> : IObservableCache<TObject,
     public IObservable<IChangeSet<TObject, TKey>> Connect(Func<TObject, bool>? predicate = null, bool suppressEmptyChangeSets = true) =>
         Observable.Create<IChangeSet<TObject, TKey>>(observer =>
         {
+            // Only the suspension decision needs the lock. The subscription itself (and the
+            // initial-snapshot delivery it performs) runs outside the lock, so downstream code
+            // is never invoked while _locker is held.
+            IObservable<IChangeSet<TObject, TKey>> observable;
             lock (_locker)
             {
-                var observable = (!_suspensionTracker.IsValueCreated || !_suspensionTracker.Value.AreNotificationsSuspended)
+                observable = (!_suspensionTracker.IsValueCreated || !_suspensionTracker.Value.AreNotificationsSuspended)
 
                     // Create the Connection Observable
                     ? CreateConnectObservable(predicate, suppressEmptyChangeSets)
@@ -123,9 +128,9 @@ internal sealed class ObservableCache<TObject, TKey> : IObservableCache<TObject,
                     // Defer until notifications are no longer suspended
                     : _suspensionTracker.Value.NotificationsSuspendedObservable.Do(static _ => { }, observer.OnCompleted)
                         .Where(static b => !b).Take(1).Select(_ => CreateConnectObservable(predicate, suppressEmptyChangeSets)).Switch();
-
-                return observable.SubscribeSafe(observer);
             }
+
+            return observable.SubscribeSafe(observer);
         });
 
     public void Dispose() => _cleanUp.Dispose();
@@ -137,9 +142,10 @@ internal sealed class ObservableCache<TObject, TKey> : IObservableCache<TObject,
     public IObservable<Change<TObject, TKey>> Watch(TKey key) =>
         Observable.Create<Change<TObject, TKey>>(observer =>
         {
+            IObservable<Change<TObject, TKey>> observable;
             lock (_locker)
             {
-                var observable = (!_suspensionTracker.IsValueCreated || !_suspensionTracker.Value.AreNotificationsSuspended)
+                observable = (!_suspensionTracker.IsValueCreated || !_suspensionTracker.Value.AreNotificationsSuspended)
 
                     // Create the Watch Observable
                     ? CreateWatchObservable(key)
@@ -147,9 +153,9 @@ internal sealed class ObservableCache<TObject, TKey> : IObservableCache<TObject,
                     // Defer until notifications are no longer suspended
                     : _suspensionTracker.Value.NotificationsSuspendedObservable.Do(static _ => { }, observer.OnCompleted)
                         .Where(static b => !b).Take(1).Select(_ => CreateWatchObservable(key)).Switch();
-
-                return observable.SubscribeSafe(observer);
             }
+
+            return observable.SubscribeSafe(observer);
         });
 
     public IDisposable SuspendCount()
@@ -226,69 +232,161 @@ internal sealed class ObservableCache<TObject, TKey> : IObservableCache<TObject,
         }
     }
 
-    private IObservable<IChangeSet<TObject, TKey>> CreateConnectObservable(Func<TObject, bool>? predicate, bool suppressEmptyChangeSets) =>
-        Observable.Create<IChangeSet<TObject, TKey>>(
-            observer =>
+    /// <summary>
+    /// Subscribes to the live change stream and delivers an initial snapshot WITHOUT holding
+    /// <see cref="_locker"/> during delivery. The <paramref name="capture"/> callback runs under
+    /// the read lock and returns the immutable initial payload plus the live stream; the live
+    /// subscription is established under the lock (so no change can slip past between the snapshot
+    /// and the subscription), but its notifications are buffered until the snapshot has been
+    /// delivered outside the lock, then flushed in order before switching to direct delivery.
+    /// Initial delivery stays synchronous on the subscribing thread while downstream code is
+    /// never invoked while the lock is held. The <see cref="bool"/> argument is whether the
+    /// delivery queue has pending (not-yet-delivered) notifications.
+    /// </summary>
+    private IObservable<T> RunWithInitialOffLock<T>(Func<bool, (IReadOnlyList<T> Initial, IObservable<T> Live)> capture) =>
+        Observable.Create<T>(observer =>
+        {
+            var gate = new object();
+            List<T>? buffered = null;
+            var initialShipped = false;
+            var completed = false;
+            Exception? error = null;
+            IReadOnlyList<T> initial;
+            IDisposable subscription;
+
+            using (var readLock = _notifications.AcquireReadLock())
             {
-                using var readLock = _notifications.AcquireReadLock();
+                (initial, var live) = capture(readLock.HasPending);
 
-                var initial = InternalEx.Return(() => (IChangeSet<TObject, TKey>)GetInitialUpdates(predicate));
-
-                // The current snapshot may contain changes that have been made but the notifications
-                // have yet to be delivered.  We need to filter those out to avoid delivering an update
-                // that has already been applied (but detect this possibility and skip filtering unless absolutely needed)
-                var snapshotVersion = _currentVersion;
-                var changes = readLock.HasPending
-                    ? _changes.SkipWhile(_ => Volatile.Read(ref _currentDeliveryVersion) <= snapshotVersion)
-                    : (IObservable<IChangeSet<TObject, TKey>>)_changes;
-
-                changes = initial.Concat(changes);
-
-                if (predicate != null)
-                {
-                    changes = changes.Filter(predicate, suppressEmptyChangeSets);
-                }
-                else if (suppressEmptyChangeSets)
-                {
-                    changes = changes.NotEmpty();
-                }
-
-                return changes.SubscribeSafe(observer);
-            });
-
-    private IObservable<Change<TObject, TKey>> CreateWatchObservable(TKey key) =>
-        Observable.Create<Change<TObject, TKey>>(
-            observer =>
-            {
-                using var readLock = _notifications.AcquireReadLock();
-
-                var initial = _readerWriter.Lookup(key);
-                if (initial.HasValue)
-                {
-                    observer.OnNext(new Change<TObject, TKey>(ChangeReason.Add, key, initial.Value));
-                }
-
-                // The current snapshot may contain changes that have been made but the notifications
-                // have yet to be delivered.  We need to filter those out to avoid delivering an update
-                // that has already been applied (but detect this possibility and skip filtering unless absolutely needed)
-                var snapshotVersion = _currentVersion;
-                var changes = readLock.HasPending
-                    ? _changes.SkipWhile(_ => Volatile.Read(ref _currentDeliveryVersion) <= snapshotVersion)
-                    : _changes;
-
-                return changes.Finally(observer.OnCompleted).Subscribe(
-                    changes =>
+                // Established under the lock so no live notification is missed, but every
+                // notification (including a terminal one) is buffered until the snapshot has
+                // shipped so ordering is preserved. Subscribing to an already-completed stream
+                // (e.g. a source that completes before Connect) would otherwise terminate the
+                // observer before the initial snapshot is delivered.
+                subscription = live.SubscribeSafe(Observer.Create<T>(
+                    item =>
                     {
-                        foreach (var change in changes)
+                        lock (gate)
                         {
-                            var match = EqualityComparer<TKey>.Default.Equals(change.Key, key);
-                            if (match)
+                            if (!initialShipped)
                             {
-                                observer.OnNext(change);
+                                (buffered ??= []).Add(item);
+                                return;
                             }
                         }
-                    });
-            });
+
+                        observer.OnNext(item);
+                    },
+                    ex =>
+                    {
+                        lock (gate)
+                        {
+                            if (!initialShipped)
+                            {
+                                error = ex;
+                                return;
+                            }
+                        }
+
+                        observer.OnError(ex);
+                    },
+                    () =>
+                    {
+                        lock (gate)
+                        {
+                            if (!initialShipped)
+                            {
+                                completed = true;
+                                return;
+                            }
+                        }
+
+                        observer.OnCompleted();
+                    }));
+            }
+
+            // Lock released. Deliver the snapshot, flush anything buffered during the gap, then
+            // switch to direct delivery. All of this runs outside _locker.
+            foreach (var item in initial)
+            {
+                observer.OnNext(item);
+            }
+
+            Exception? pendingError;
+            bool pendingCompleted;
+            lock (gate)
+            {
+                if (buffered is not null)
+                {
+                    foreach (var item in buffered)
+                    {
+                        observer.OnNext(item);
+                    }
+
+                    buffered = null;
+                }
+
+                initialShipped = true;
+                pendingError = error;
+                pendingCompleted = completed;
+            }
+
+            if (pendingError is not null)
+            {
+                observer.OnError(pendingError);
+            }
+            else if (pendingCompleted)
+            {
+                observer.OnCompleted();
+            }
+
+            return subscription;
+        });
+
+    private IObservable<IChangeSet<TObject, TKey>> CreateConnectObservable(Func<TObject, bool>? predicate, bool suppressEmptyChangeSets)
+    {
+        var source = RunWithInitialOffLock<IChangeSet<TObject, TKey>>(hasPending =>
+        {
+            // The current snapshot may contain changes that have been made but whose notifications
+            // have yet to be delivered.  We filter those out to avoid delivering an update that has
+            // already been applied (skipping the filter unless there is pending delivery).
+            var snapshotVersion = _currentVersion;
+            var live = hasPending
+                ? _changes.SkipWhile(_ => Volatile.Read(ref _currentDeliveryVersion) <= snapshotVersion)
+                : (IObservable<IChangeSet<TObject, TKey>>)_changes;
+
+            return ([GetInitialUpdates(predicate)], live);
+        });
+
+        if (predicate != null)
+        {
+            return source.Filter(predicate, suppressEmptyChangeSets);
+        }
+
+        return suppressEmptyChangeSets ? source.NotEmpty() : source;
+    }
+
+    private IObservable<Change<TObject, TKey>> CreateWatchObservable(TKey key) =>
+        RunWithInitialOffLock<Change<TObject, TKey>>(hasPending =>
+        {
+            var lookup = _readerWriter.Lookup(key);
+            IReadOnlyList<Change<TObject, TKey>> initial = lookup.HasValue
+                ? [new Change<TObject, TKey>(ChangeReason.Add, key, lookup.Value)]
+                : [];
+
+            // The current snapshot may contain changes that have been made but whose notifications
+            // have yet to be delivered.  We filter those out to avoid delivering an update that has
+            // already been applied (skipping the filter unless there is pending delivery).
+            var snapshotVersion = _currentVersion;
+            var stream = hasPending
+                ? _changes.SkipWhile(_ => Volatile.Read(ref _currentDeliveryVersion) <= snapshotVersion)
+                : _changes;
+
+            var live = stream.SelectMany(static changes => changes)
+                .Where(change => EqualityComparer<TKey>.Default.Equals(change.Key, key));
+
+            return (initial, live);
+        });
 
     /// <summary>
     /// Delivers a preview notification synchronously under _locker. Preview is
