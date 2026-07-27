@@ -150,9 +150,9 @@ aggregation/list   ObservableCacheEx.FinallySafe(Action)
 list               ObservableCacheEx.FinallySafe(Action)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 aggregation/list   ObservableCacheEx.MonitorStatus()
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableCacheEx.MonitorStatus()
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 aggregation/list   ObservableCacheEx.ToObservableChangeSet(Func<IAggregateChangeSet<TObject>,TKey>, Func<IAggregateChangeSet<TObject>,TimeSpan?>, int, IScheduler)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableCacheEx.ToObservableChangeSet(Func<IChangeSet<TObject>,TKey>, Func<IChangeSet<TObject>,TimeSpan?>, int, IScheduler)
@@ -286,7 +286,7 @@ list               ObservableListEx.BufferIf(IObservable<bool>, IScheduler)
 list               ObservableListEx.BufferIf(IObservable<bool>, TimeSpan?, IScheduler)
     complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
 list               ObservableListEx.BufferInitial(TimeSpan, IScheduler)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.Cast()
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.Cast(Func<TObject,TObject>)
@@ -316,7 +316,7 @@ list               ObservableListEx.Convert(Func<IObservable<IChangeSet<TObject>
 list               ObservableListEx.Convert(Func<Object,TObject>)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.DeferUntilLoaded()
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.DisposeMany()
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.DistinctValues(Func<TObject,TObject>)
@@ -512,7 +512,7 @@ list               ObservableListEx.RemoveIndex()
 list               ObservableListEx.Reverse()
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.SkipInitial()
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.Sort(IComparer<TObject>, SortOptions, IObservable<Unit>, IObservable<IComparer<TObject>>, int)
     complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
 list               ObservableListEx.Sort(IComparer<IObservable<IChangeSet<TObject,TKey>>>, SortOptions, IObservable<Unit>, IObservable<IComparer<IObservable<IChangeSet<TObject,TKey>>>>, int)
