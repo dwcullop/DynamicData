@@ -130,21 +130,21 @@ list               IObservableListEx.BindToObservableList(out IObservableList<IO
 list               IObservableListEx.BindToObservableList(out IObservableList<Object>)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               MaxEx.Maximum(Func<TObject,int>, int)
-    complete=NO-COMPLETE  error=THROWS-OUT-OF-SUBSCRIBE  data-then-complete=NO-COMPLETE  data-then-error=THROWS-OUT-OF-SUBSCRIBE  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               MaxEx.Maximum(Func<IObservable<IChangeSet<TObject,TKey>>,int>, int)
-    complete=NO-COMPLETE  error=THROWS-OUT-OF-SUBSCRIBE  data-then-complete=NO-COMPLETE  data-then-error=THROWS-OUT-OF-SUBSCRIBE  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               MaxEx.Maximum(Func<IObservable<IChangeSet<TObject>>,int>, int)
-    complete=NO-COMPLETE  error=THROWS-OUT-OF-SUBSCRIBE  data-then-complete=NO-COMPLETE  data-then-error=THROWS-OUT-OF-SUBSCRIBE  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               MaxEx.Maximum(Func<Object,int>, int)
-    complete=NO-COMPLETE  error=THROWS-OUT-OF-SUBSCRIBE  data-then-complete=NO-COMPLETE  data-then-error=THROWS-OUT-OF-SUBSCRIBE  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               MaxEx.Minimum(Func<TObject,int>, int)
-    complete=NO-COMPLETE  error=THROWS-OUT-OF-SUBSCRIBE  data-then-complete=NO-COMPLETE  data-then-error=THROWS-OUT-OF-SUBSCRIBE  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               MaxEx.Minimum(Func<IObservable<IChangeSet<TObject,TKey>>,int>, int)
-    complete=NO-COMPLETE  error=THROWS-OUT-OF-SUBSCRIBE  data-then-complete=NO-COMPLETE  data-then-error=THROWS-OUT-OF-SUBSCRIBE  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               MaxEx.Minimum(Func<IObservable<IChangeSet<TObject>>,int>, int)
-    complete=NO-COMPLETE  error=THROWS-OUT-OF-SUBSCRIBE  data-then-complete=NO-COMPLETE  data-then-error=THROWS-OUT-OF-SUBSCRIBE  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               MaxEx.Minimum(Func<Object,int>, int)
-    complete=NO-COMPLETE  error=THROWS-OUT-OF-SUBSCRIBE  data-then-complete=NO-COMPLETE  data-then-error=THROWS-OUT-OF-SUBSCRIBE  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 aggregation/list   ObservableCacheEx.FinallySafe(Action)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableCacheEx.FinallySafe(Action)
@@ -278,13 +278,13 @@ list               ObservableListEx.Bind(out ReadOnlyObservableCollection<Object
 list               ObservableListEx.Bind(out ReadOnlyObservableCollection<Object>, int)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.BufferIf(IObservable<bool>, bool, IScheduler)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.BufferIf(IObservable<bool>, bool, TimeSpan?, IScheduler)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.BufferIf(IObservable<bool>, IScheduler)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.BufferIf(IObservable<bool>, TimeSpan?, IScheduler)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.BufferInitial(TimeSpan, IScheduler)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.Cast()
@@ -388,25 +388,27 @@ list               ObservableListEx.ForEachItemChange(Action<ItemChange<IObserva
 list               ObservableListEx.ForEachItemChange(Action<ItemChange<Object>>)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.GroupOn(Func<TObject,TObject>, IObservable<Unit>)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.GroupOn(Func<IObservable<IChangeSet<TObject,TKey>>,TObject>, IObservable<Unit>)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.GroupOn(Func<IObservable<IChangeSet<TObject>>,TObject>, IObservable<Unit>)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.GroupOn(Func<Object,TObject>, IObservable<Unit>)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.GroupOnProperty(Expression<Func<TObject,TObject>>, TimeSpan?, IScheduler)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
 list               ObservableListEx.GroupOnPropertyWithImmutableState(Expression<Func<TObject,TObject>>, TimeSpan?, IScheduler)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
 list               ObservableListEx.GroupWithImmutableState(Func<TObject,TKey>, IObservable<Unit>)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.GroupWithImmutableState(Func<IObservable<IChangeSet<TObject,TKey>>,TKey>, IObservable<Unit>)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.GroupWithImmutableState(Func<IObservable<IChangeSet<TObject>>,TKey>, IObservable<Unit>)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.GroupWithImmutableState(Func<Object,TKey>, IObservable<Unit>)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
+list               ObservableListEx.MergeChangeSets(IComparer<TObject>)
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.MergeChangeSets(IEnumerable<IObservable<IChangeSet<TObject>>>, IEqualityComparer<TObject>, IScheduler, bool)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.MergeChangeSets(IEnumerable<IObservable<IChangeSet<IObservable<IChangeSet<TObject,TKey>>>>>, IEqualityComparer<IObservable<IChangeSet<TObject,TKey>>>, IScheduler, bool)
@@ -418,7 +420,7 @@ list               ObservableListEx.MergeChangeSets(IEnumerable<IObservable<ICha
 list               ObservableListEx.MergeChangeSets(IEqualityComparer<TObject>)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.MergeChangeSets(IEqualityComparer<TObject>, IComparer<TObject>)
-    complete=ok  error=THROWS-OUT-OF-SUBSCRIBE  data-then-complete=ok  data-then-error=THROWS-OUT-OF-SUBSCRIBE  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.MergeChangeSets(IObservable<IChangeSet<TObject>>, IEqualityComparer<TObject>, IScheduler, bool)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.MergeChangeSets(IObservable<IChangeSet<IObservable<IChangeSet<TObject,TKey>>>>, IEqualityComparer<IObservable<IChangeSet<TObject,TKey>>>, IScheduler, bool)
@@ -436,29 +438,29 @@ list               ObservableListEx.MergeMany(Func<IObservable<IChangeSet<TObjec
 list               ObservableListEx.MergeMany(Func<Object,IObservable<TObject>>)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.MergeManyChangeSets(Func<TObject,IObservable<IChangeSet<TObject,TKey>>>, IComparer<TObject>)
-    complete=ok  error=THROWS-OUT-OF-SUBSCRIBE  data-then-complete=ok  data-then-error=THROWS-OUT-OF-SUBSCRIBE  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.MergeManyChangeSets(Func<TObject,IObservable<IChangeSet<TObject,TKey>>>, IEqualityComparer<TObject>, IComparer<TObject>)
-    complete=ok  error=THROWS-OUT-OF-SUBSCRIBE  data-then-complete=ok  data-then-error=THROWS-OUT-OF-SUBSCRIBE  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.MergeManyChangeSets(Func<TObject,IObservable<IChangeSet<TObject>>>, IEqualityComparer<TObject>)
-    complete=ok  error=THROWS-OUT-OF-SUBSCRIBE  data-then-complete=ok  data-then-error=THROWS-OUT-OF-SUBSCRIBE  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.MergeManyChangeSets(Func<IObservable<IChangeSet<TObject,TKey>>,IObservable<IChangeSet<TObject,TKey>>>, IComparer<TObject>)
-    complete=ok  error=THROWS-OUT-OF-SUBSCRIBE  data-then-complete=ok  data-then-error=THROWS-OUT-OF-SUBSCRIBE  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.MergeManyChangeSets(Func<IObservable<IChangeSet<TObject,TKey>>,IObservable<IChangeSet<TObject,TKey>>>, IEqualityComparer<TObject>, IComparer<TObject>)
-    complete=ok  error=THROWS-OUT-OF-SUBSCRIBE  data-then-complete=ok  data-then-error=THROWS-OUT-OF-SUBSCRIBE  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.MergeManyChangeSets(Func<IObservable<IChangeSet<TObject,TKey>>,IObservable<IChangeSet<TObject>>>, IEqualityComparer<TObject>)
-    complete=ok  error=THROWS-OUT-OF-SUBSCRIBE  data-then-complete=ok  data-then-error=THROWS-OUT-OF-SUBSCRIBE  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.MergeManyChangeSets(Func<IObservable<IChangeSet<TObject>>,IObservable<IChangeSet<TObject,TKey>>>, IComparer<TObject>)
-    complete=ok  error=THROWS-OUT-OF-SUBSCRIBE  data-then-complete=ok  data-then-error=THROWS-OUT-OF-SUBSCRIBE  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.MergeManyChangeSets(Func<IObservable<IChangeSet<TObject>>,IObservable<IChangeSet<TObject,TKey>>>, IEqualityComparer<TObject>, IComparer<TObject>)
-    complete=ok  error=THROWS-OUT-OF-SUBSCRIBE  data-then-complete=ok  data-then-error=THROWS-OUT-OF-SUBSCRIBE  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.MergeManyChangeSets(Func<IObservable<IChangeSet<TObject>>,IObservable<IChangeSet<TObject>>>, IEqualityComparer<TObject>)
-    complete=ok  error=THROWS-OUT-OF-SUBSCRIBE  data-then-complete=ok  data-then-error=THROWS-OUT-OF-SUBSCRIBE  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.MergeManyChangeSets(Func<Object,IObservable<IChangeSet<TObject,TKey>>>, IComparer<TObject>)
-    complete=ok  error=THROWS-OUT-OF-SUBSCRIBE  data-then-complete=ok  data-then-error=THROWS-OUT-OF-SUBSCRIBE  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.MergeManyChangeSets(Func<Object,IObservable<IChangeSet<TObject,TKey>>>, IEqualityComparer<TObject>, IComparer<TObject>)
-    complete=ok  error=THROWS-OUT-OF-SUBSCRIBE  data-then-complete=ok  data-then-error=THROWS-OUT-OF-SUBSCRIBE  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.MergeManyChangeSets(Func<Object,IObservable<IChangeSet<TObject>>>, IEqualityComparer<TObject>)
-    complete=ok  error=THROWS-OUT-OF-SUBSCRIBE  data-then-complete=ok  data-then-error=THROWS-OUT-OF-SUBSCRIBE  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.NotEmpty()
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.OnItemAdded(Action<TObject>)
@@ -496,15 +498,15 @@ list               ObservableListEx.Or(IObservable<IChangeSet<Object>>[])
 list               ObservableListEx.Page(IObservable<IPageRequest>)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.QueryWhenChanged()
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.QueryWhenChanged(Func<IReadOnlyCollection<TObject>,TObject>)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.QueryWhenChanged(Func<IReadOnlyCollection<IObservable<IChangeSet<TObject,TKey>>>,TObject>)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.QueryWhenChanged(Func<IReadOnlyCollection<IObservable<IChangeSet<TObject>>>,TObject>)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.QueryWhenChanged(Func<IReadOnlyCollection<Object>,TObject>)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.RefCount()
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.RemoveIndex()
@@ -514,21 +516,21 @@ list               ObservableListEx.Reverse()
 list               ObservableListEx.SkipInitial()
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.Sort(IComparer<TObject>, SortOptions, IObservable<Unit>, IObservable<IComparer<TObject>>, int)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.Sort(IComparer<IObservable<IChangeSet<TObject,TKey>>>, SortOptions, IObservable<Unit>, IObservable<IComparer<IObservable<IChangeSet<TObject,TKey>>>>, int)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.Sort(IComparer<IObservable<IChangeSet<TObject>>>, SortOptions, IObservable<Unit>, IObservable<IComparer<IObservable<IChangeSet<TObject>>>>, int)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.Sort(IComparer<Object>, SortOptions, IObservable<Unit>, IObservable<IComparer<Object>>, int)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.Sort(IObservable<IComparer<TObject>>, SortOptions, IObservable<Unit>, int)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.Sort(IObservable<IComparer<IObservable<IChangeSet<TObject,TKey>>>>, SortOptions, IObservable<Unit>, int)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.Sort(IObservable<IComparer<IObservable<IChangeSet<TObject>>>>, SortOptions, IObservable<Unit>, int)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.Sort(IObservable<IComparer<Object>>, SortOptions, IObservable<Unit>, int)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.StartWithEmpty()
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.SubscribeMany(Func<TObject,IDisposable>)
@@ -544,7 +546,7 @@ list               ObservableListEx.SuppressRefresh()
 list               ObservableListEx.Switch()
     complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
 list               ObservableListEx.ToCollection()
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 aggregation/list   ObservableListEx.ToObservableChangeSet(Func<IAggregateChangeSet<TObject>,TimeSpan?>, IScheduler)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 aggregation/list   ObservableListEx.ToObservableChangeSet(Func<IAggregateChangeSet<TObject>,TimeSpan?>, int, IScheduler)
@@ -586,21 +588,21 @@ aggregation/list   ObservableListEx.ToObservableChangeSet(int, IScheduler)
 list               ObservableListEx.ToObservableChangeSet(int, IScheduler)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.ToSortedCollection(Func<TObject,TKey>, SortDirection)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.ToSortedCollection(Func<IObservable<IChangeSet<TObject,TKey>>,TKey>, SortDirection)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.ToSortedCollection(Func<IObservable<IChangeSet<TObject>>,TKey>, SortDirection)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.ToSortedCollection(Func<Object,TKey>, SortDirection)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.ToSortedCollection(IComparer<TObject>)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.ToSortedCollection(IComparer<IObservable<IChangeSet<TObject,TKey>>>)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.ToSortedCollection(IComparer<IObservable<IChangeSet<TObject>>>)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.ToSortedCollection(IComparer<Object>)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.Top(int)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.Transform(Func<TObject,TObject>, bool)

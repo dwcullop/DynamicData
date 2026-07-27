@@ -60,11 +60,7 @@ internal static class ContractSweep
     /// Each entry is a bug in its own right. Remove the entry when the underlying defect is fixed, and the
     /// overload rejoins the sweep automatically.
     /// </remarks>
-    private static readonly string[] Fatal =
-    [
-        // Infinite recursion. The lone IComparer<T> argument binds the call back to the method making it.
-        "ObservableListEx.MergeChangeSets(IComparer<ContractItem>)",
-    ];
+    private static readonly string[] Fatal = [];
 
     private static readonly Exception Failure = new InvalidOperationException("audit");
 
