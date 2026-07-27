@@ -102,7 +102,7 @@ cache              ObservableCacheEx.Adapt(IChangeSetAdaptor<TObject,TKey>)
 cache              ObservableCacheEx.Adapt(ISortedChangeSetAdaptor<TObject,TKey>)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.And(IObservable<IChangeSet<TObject,TKey>>[])
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.AsyncDisposeMany(Action<IObservable<Unit>>)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.AutoRefresh(Expression<Func<TObject,TObject>>, TimeSpan?, TimeSpan?, IScheduler)
@@ -174,7 +174,7 @@ any                ObservableCacheEx.EditDiff(Func<TObject,TKey>, IEqualityCompa
 cache              ObservableCacheEx.EnsureUniqueKeys()
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.Except(IObservable<IChangeSet<TObject,TKey>>[])
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.ExpireAfter(Func<TObject,TimeSpan?>)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.ExpireAfter(Func<TObject,TimeSpan?>, IScheduler)
@@ -348,7 +348,7 @@ cache              ObservableCacheEx.OnItemUpdated(Action<TObject,TObject,TKey>)
 cache              ObservableCacheEx.OnItemUpdated(Action<TObject,TObject>)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.Or(IObservable<IChangeSet<TObject,TKey>>[])
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.Page(IObservable<IPageRequest>)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.QueryWhenChanged()
@@ -606,7 +606,7 @@ cache              ObservableCacheEx.WhereReasonsAre(ChangeReason[])
 cache              ObservableCacheEx.WhereReasonsAreNot(ChangeReason[])
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.Xor(IObservable<IChangeSet<TObject,TKey>>[])
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 any                ObservableListEx.ToObservableChangeSet(Func<TObject,TimeSpan?>, IScheduler)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 any                ObservableListEx.ToObservableChangeSet(Func<TObject,TimeSpan?>, int, IScheduler)

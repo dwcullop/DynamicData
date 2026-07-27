@@ -218,13 +218,13 @@ list               ObservableListEx.AddKey(Func<IObservable<IChangeSet<TObject>>
 list               ObservableListEx.AddKey(Func<Object,TKey>)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.And(IObservable<IChangeSet<TObject>>[])
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.And(IObservable<IChangeSet<IObservable<IChangeSet<TObject,TKey>>>>[])
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.And(IObservable<IChangeSet<IObservable<IChangeSet<TObject>>>>[])
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.And(IObservable<IChangeSet<Object>>[])
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.AutoRefresh(Expression<Func<TObject,TObject>>, TimeSpan?, TimeSpan?, IScheduler)
     complete=ok  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
 list               ObservableListEx.AutoRefresh(TimeSpan?, TimeSpan?, IScheduler)
@@ -328,13 +328,13 @@ list               ObservableListEx.DistinctValues(Func<IObservable<IChangeSet<T
 list               ObservableListEx.DistinctValues(Func<Object,TObject>)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.Except(IObservable<IChangeSet<TObject>>[])
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.Except(IObservable<IChangeSet<IObservable<IChangeSet<TObject,TKey>>>>[])
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.Except(IObservable<IChangeSet<IObservable<IChangeSet<TObject>>>>[])
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.Except(IObservable<IChangeSet<Object>>[])
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.Filter(Func<TObject,bool>)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.Filter(Func<IObservable<IChangeSet<TObject,TKey>>,bool>)
@@ -488,13 +488,13 @@ list               ObservableListEx.OnItemRemoved(Action<IObservable<IChangeSet<
 list               ObservableListEx.OnItemRemoved(Action<Object>, bool)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.Or(IObservable<IChangeSet<TObject>>[])
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.Or(IObservable<IChangeSet<IObservable<IChangeSet<TObject,TKey>>>>[])
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.Or(IObservable<IChangeSet<IObservable<IChangeSet<TObject>>>>[])
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.Or(IObservable<IChangeSet<Object>>[])
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.Page(IObservable<IPageRequest>)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.QueryWhenChanged()
@@ -714,13 +714,13 @@ list               ObservableListEx.WhereReasonsAre(ListChangeReason[])
 list               ObservableListEx.WhereReasonsAreNot(ListChangeReason[])
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.Xor(IObservable<IChangeSet<TObject>>[])
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.Xor(IObservable<IChangeSet<IObservable<IChangeSet<TObject,TKey>>>>[])
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.Xor(IObservable<IChangeSet<IObservable<IChangeSet<TObject>>>>[])
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               ObservableListEx.Xor(IObservable<IChangeSet<Object>>[])
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 aggregation/list   StdDevEx.StdDev(Func<TObject,Decimal>, Decimal)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 list               StdDevEx.StdDev(Func<TObject,Decimal>, Decimal)
