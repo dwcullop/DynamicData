@@ -90,7 +90,7 @@ cache              ObservableCacheAlias.SelectSafe(Func<TObject,TKey,TObject>, A
 cache              ObservableCacheAlias.SelectSafe(Func<TObject,TKey,TObject>, Action<Error<TObject,TKey>>, IObservable<Unit>)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheAlias.SelectTree(Func<TObject,TKey>)
-    complete=ok  error=ERROR-LOST  data-then-complete=NO-COMPLETE  data-then-error=ERROR-LOST  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheAlias.Where(Func<TObject,bool>)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheAlias.Where(IObservable<Func<TObject,bool>>)
@@ -116,21 +116,21 @@ cache              ObservableCacheEx.AutoRefreshOnObservable(Func<TObject,TKey,I
 cache              ObservableCacheEx.Batch(TimeSpan, IScheduler)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.BatchIf(IObservable<bool>, bool, IObservable<Unit>, IScheduler)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.BatchIf(IObservable<bool>, bool, IScheduler)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.BatchIf(IObservable<bool>, bool, TimeSpan?, IScheduler)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.BatchIf(IObservable<bool>, IScheduler)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.BatchIf(IObservable<bool>, TimeSpan?, IScheduler)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.Bind(BindingList<TObject>, int)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.Bind(IList<TObject>)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.Bind(IList<TObject>, SortAndBindOptions)
-    complete=ok  error=THROWS-OUT-OF-SUBSCRIBE  data-then-complete=ok  data-then-error=THROWS-OUT-OF-SUBSCRIBE  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.Bind(IObservableCollection<TObject>)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.Bind(IObservableCollection<TObject>, BindingOptions)
@@ -142,7 +142,7 @@ cache              ObservableCacheEx.Bind(IObservableCollection<TObject>, ISorte
 cache              ObservableCacheEx.Bind(IObservableCollection<TObject>, int)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.Bind(out ReadOnlyObservableCollection<TObject>)
-    complete=NO-COMPLETE  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.Bind(out ReadOnlyObservableCollection<TObject>, BindingOptions)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.Bind(out ReadOnlyObservableCollection<TObject>, int, bool, IObservableCollectionAdaptor<TObject,TKey>)
@@ -150,7 +150,7 @@ cache              ObservableCacheEx.Bind(out ReadOnlyObservableCollection<TObje
 cache              ObservableCacheEx.Bind(out ReadOnlyObservableCollection<TObject>, int, bool, ISortedObservableCollectionAdaptor<TObject,TKey>)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.Bind(out ReadOnlyObservableCollection<TObject>, SortAndBindOptions)
-    complete=ok  error=THROWS-OUT-OF-SUBSCRIBE  data-then-complete=ok  data-then-error=THROWS-OUT-OF-SUBSCRIBE  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.BufferInitial(TimeSpan, IScheduler)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.Cast(Func<TObject,TObject>)
@@ -218,11 +218,11 @@ cache              ObservableCacheEx.FullJoinMany(IObservable<IChangeSet<TObject
 cache              ObservableCacheEx.FullJoinMany(IObservable<IChangeSet<TObject,TKey>>, Func<TObject,TKey>, Func<TKey,Optional<TObject>,IGrouping<TObject,TKey,TKey>,TObject>)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.Group(Func<TObject,TKey>)
-    complete=ok  error=THROWS-OUT-OF-SUBSCRIBE  data-then-complete=ok  data-then-error=THROWS-OUT-OF-SUBSCRIBE  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.Group(Func<TObject,TKey>, IObservable<IDistinctChangeSet<TKey>>)
-    complete=COMPLETE-BECOMES-ERROR  error=ok  data-then-complete=COMPLETE-BECOMES-ERROR  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.Group(Func<TObject,TKey>, IObservable<Unit>)
-    complete=ok  error=THROWS-OUT-OF-SUBSCRIBE  data-then-complete=ok  data-then-error=THROWS-OUT-OF-SUBSCRIBE  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.Group(IObservable<Func<TObject,TKey,TKey>>, IObservable<Unit>)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.Group(IObservable<Func<TObject,TKey>>, IObservable<Unit>)
@@ -232,7 +232,7 @@ cache              ObservableCacheEx.GroupOnObservable(Func<TObject,IObservable<
 cache              ObservableCacheEx.GroupOnObservable(Func<TObject,TKey,IObservable<TKey>>)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.GroupOnProperty(Expression<Func<TObject,TKey>>, TimeSpan?, IScheduler)
-    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
+    complete=ok  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.GroupOnPropertyWithImmutableState(Expression<Func<TObject,TKey>>, TimeSpan?, IScheduler)
     complete=ok  error=ok  data-then-complete=NO-COMPLETE  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.GroupWithImmutableState(Func<TObject,TKey>, IObservable<Unit>)
@@ -318,9 +318,9 @@ cache              ObservableCacheEx.MergeManyChangeSets(Func<TObject,TKey,IObse
 cache              ObservableCacheEx.MergeManyChangeSets(Func<TObject,TKey,IObservable<IChangeSet<TObject>>>, IEqualityComparer<TObject>)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.MergeManyItems(Func<TObject,IObservable<TObject>>)
-    complete=NO-COMPLETE  error=ok  data-then-complete=ok  data-then-error=THROWS-OUT-OF-SUBSCRIBE  dispose=NOTIFIES-AFTER-DISPOSE
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.MergeManyItems(Func<TObject,TKey,IObservable<TObject>>)
-    complete=NO-COMPLETE  error=ok  data-then-complete=ok  data-then-error=THROWS-OUT-OF-SUBSCRIBE  dispose=NOTIFIES-AFTER-DISPOSE
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 aggregation/cache  ObservableCacheEx.MonitorStatus()
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 any                ObservableCacheEx.MonitorStatus()
@@ -570,7 +570,7 @@ cache              ObservableCacheEx.TransformSafeAsync(Func<TObject,Task<TObjec
 cache              ObservableCacheEx.TransformSafeAsync(Func<TObject,Task<TObject>>, Action<Error<TObject,TKey>>, TransformAsyncOptions)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.TransformToTree(Func<TObject,TKey>, IObservable<Func<Node<TObject,TKey>,bool>>)
-    complete=ok  error=ERROR-LOST  data-then-complete=NO-COMPLETE  data-then-error=ERROR-LOST  dispose=ok
+    complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.TransformWithInlineUpdate(Func<TObject,TObject>, Action<TObject,TObject>)
     complete=ok  error=ok  data-then-complete=ok  data-then-error=ok  dispose=ok
 cache              ObservableCacheEx.TransformWithInlineUpdate(Func<TObject,TObject>, Action<TObject,TObject>, Action<Error<TObject,TKey>>)

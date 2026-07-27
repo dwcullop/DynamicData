@@ -27,13 +27,16 @@ internal sealed class GroupOn<TObject, TKey, TGroupKey>(IObservable<IChangeSet<T
                 var queue = new SharedDeliveryQueue();
                 var grouper = new Grouper(_groupSelectorKey);
 
-                var groups = _source.SynchronizeSafe(queue).Finally(observer.OnCompleted).Select(grouper.Update).Where(changes => changes.Count != 0);
+                var groups = _source.SynchronizeSafe(queue).Select(grouper.Update).Where(changes => changes.Count != 0);
 
                 var regroup = _regrouper.SynchronizeSafe(queue).Select(_ => grouper.Regroup()).Where(changes => changes.Count != 0);
 
                 var published = groups.Merge(regroup).Publish();
                 var subscriber = published.SubscribeSafe(observer);
-                var disposer = published.DisposeMany().Subscribe();
+
+                // The observer above already receives any error. Without a handler here Rx would rethrow it
+                // out of the subscription instead.
+                var disposer = published.DisposeMany().Subscribe(static _ => { }, static _ => { });
 
                 var connected = published.Connect();
 

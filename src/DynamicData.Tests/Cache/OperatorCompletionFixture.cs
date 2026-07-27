@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reactive;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 
@@ -169,5 +170,99 @@ public class OperatorCompletionFixture
 
         completed.Should().BeTrue();
     }
-}
 
+    [Fact]
+    public void BatchIfCompletesWhenSourceCompletes()
+    {
+        using var source = new Subject<IChangeSet<Person, string>>();
+        var completed = false;
+
+        using var subscription = source.BatchIf(Observable.Return(false), Scheduler.Immediate).Subscribe(_ => { }, () => completed = true);
+
+        source.OnCompleted();
+
+        completed.Should().BeTrue();
+    }
+
+    [Fact]
+    public void BatchIfFlushesHeldChangesBeforeCompleting()
+    {
+        using var source = new Subject<IChangeSet<Person, string>>();
+        using var pause = new BehaviorSubject<bool>(true);
+        var received = 0;
+        var completed = false;
+
+        using var subscription = source.BatchIf(pause, Scheduler.Immediate).Subscribe(_ => received++, () => completed = true);
+
+        source.OnNext(new ChangeSet<Person, string> { new(ChangeReason.Add, "a", new Person("a", 1)) });
+        source.OnCompleted();
+
+        received.Should().Be(1, "changes held back by the pause would otherwise be lost");
+        completed.Should().BeTrue();
+    }
+
+    [Fact]
+    public void MergeManyItemsCompletesWhenSourceCompletes()
+    {
+        using var source = new Subject<IChangeSet<Person, string>>();
+        var completed = false;
+
+        using var subscription = source.MergeManyItems(_ => Observable.Empty<int>()).Subscribe(_ => { }, () => completed = true);
+
+        source.OnCompleted();
+
+        completed.Should().BeTrue();
+    }
+
+    [Fact]
+    public void MergeManyItemsStaysOpenWhenAChildCompletes()
+    {
+        using var source = new SourceCache<Person, string>(p => p.Name);
+        var completed = false;
+
+        using var subscription = source.Connect().MergeManyItems(_ => Observable.Return(1)).Subscribe(_ => { }, () => completed = true);
+
+        source.AddOrUpdate(new Person("a", 1));
+
+        completed.Should().BeFalse("one child finishing does not finish the merge");
+    }
+
+    [Fact]
+    public void GroupDeliversErrorWithoutThrowing()
+    {
+        using var source = new Subject<IChangeSet<Person, string>>();
+        Exception? error = null;
+
+        using var subscription = source.Group(p => p.Age).Subscribe(_ => { }, ex => error = ex, () => { });
+
+        source.OnError(new InvalidOperationException("boom"));
+
+        error.Should().BeOfType<InvalidOperationException>();
+    }
+
+    [Fact]
+    public void TransformToTreeDeliversError()
+    {
+        Exception? error = null;
+
+        using var subscription = Observable.Throw<IChangeSet<Person, string>>(new InvalidOperationException("boom"))
+            .TransformToTree(p => p.Name)
+            .Subscribe(_ => { }, ex => error = ex, () => { });
+
+        error.Should().BeOfType<InvalidOperationException>("the intermediate caches must not swallow it");
+    }
+
+    [Fact]
+    public void TransformToTreeCompletesWhenSourceCompletes()
+    {
+        using var source = new Subject<IChangeSet<Person, string>>();
+        var completed = false;
+
+        using var subscription = source.TransformToTree(p => p.Name).Subscribe(_ => { }, () => completed = true);
+
+        source.OnNext(new ChangeSet<Person, string> { new(ChangeReason.Add, "a", new Person("a", 1)) });
+        source.OnCompleted();
+
+        completed.Should().BeTrue();
+    }
+}
